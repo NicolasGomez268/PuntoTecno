@@ -1,0 +1,30 @@
+# Archivos del sistema
+*.pyc
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+db.sqlite3
+db.sqlite3-journal
+*.log
+
+# Entorno virtual
+venv/
+env/
+ENV/
+
+# Media files
+media/
+staticfiles/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
