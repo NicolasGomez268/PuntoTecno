@@ -95,4 +95,4 @@ class ProductStockUpdateSerializer(serializers.Serializer):
     
     movement_type = serializers.ChoiceField(choices=['in', 'out', 'adjustment'])
     quantity = serializers.IntegerField(min_value=0)
-    reason = serializers.CharField()
+    reason = serializers.CharField(required=False, allow_blank=True)

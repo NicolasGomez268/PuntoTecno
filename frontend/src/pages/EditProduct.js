@@ -85,7 +85,46 @@ const EditProduct = () => {
       navigate('/inventory');
     } catch (error) {
       console.error('Error al actualizar producto:', error);
-      alert('Error al actualizar el producto. Verifica los datos.');
+      
+      let errorMessage = 'Error al actualizar el producto. Verifica los datos.';
+      
+      if (error.response?.status === 403) {
+        errorMessage = '🔒 No tienes permisos para editar productos. Solo los administradores pueden realizar esta acción.';
+      } else if (error.response?.status === 400) {
+        errorMessage = '⚠️ Hay errores en los datos del formulario. Verifica que todos los campos sean válidos.';
+      } else if (error.response?.status === 404) {
+        errorMessage = '❌ Producto no encontrado.';
+      }
+      
+      // Crear notificación estilizada
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 max-w-md animate-slide-in';
+      notification.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-lg mb-1">Error</p>
+            <p class="text-sm">${errorMessage}</p>
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" class="flex-shrink-0 text-white hover:text-gray-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      `;
+      document.body.appendChild(notification);
+      
+      // Auto-eliminar después de 6 segundos
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 300);
+      }, 6000);
     } finally {
       setSaving(false);
     }
@@ -200,37 +239,33 @@ const EditProduct = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Precio de Venta *
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      name="sale_price"
-                      value={formData.sale_price}
-                      onChange={handleChange}
-                      required
-                      min="0"
-                      step="0.01"
-                      className="input-field pl-8"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    name="sale_price"
+                    value={formData.sale_price}
+                    onChange={handleChange}
+                    required
+                    min="0"
+                    step="0.01"
+                    className="input-field"
+                    placeholder="0.00"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Costo de Compra
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      name="unit_price"
-                      value={formData.unit_price}
-                      onChange={handleChange}
-                      min="0"
-                      step="0.01"
-                      className="input-field pl-8"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    name="unit_price"
+                    value={formData.unit_price}
+                    onChange={handleChange}
+                    min="0"
+                    step="0.01"
+                    className="input-field"
+                    placeholder="0.00"
+                  />
                 </div>
               </div>
             </div>

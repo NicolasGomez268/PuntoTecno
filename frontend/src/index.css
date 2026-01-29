@@ -101,6 +101,23 @@ code {
   100% { transform: rotate(360deg); }
 }
 
+/* Notification Animation */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+  transition: all 0.3s ease-out;
+}
+
 /* Print Styles - Ocultar navegación y elementos de interfaz al imprimir */
 @media print {
   /* Ocultar navbar y elementos de navegación */

@@ -100,26 +100,53 @@ class ProductViewSet(viewsets.ModelViewSet):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-        # Crear movimiento de stock
-        movement_data = {
-            'product': product,
-            'movement_type': serializer.validated_data['movement_type'],
-            'quantity': serializer.validated_data['quantity'],
-            'reason': serializer.validated_data['reason'],
-            'user': request.user
-        }
+        # Obtener datos validados
+        movement_type = serializer.validated_data['movement_type']
+        quantity = serializer.validated_data['quantity']
+        reason = serializer.validated_data.get('reason', '')
         
-        movement_serializer = StockMovementSerializer(data=movement_data)
+        # Guardar cantidad anterior
+        previous_quantity = product.quantity
         
-        if movement_serializer.is_valid():
-            movement_serializer.save()
+        # Calcular nueva cantidad según el tipo de movimiento
+        if movement_type == 'in':
+            new_quantity = product.quantity + quantity
+        elif movement_type == 'out':
+            if product.quantity < quantity:
+                return Response(
+                    {'error': f'No hay suficiente stock. Disponible: {product.quantity}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            new_quantity = product.quantity - quantity
+        elif movement_type == 'adjustment':
+            new_quantity = quantity
+        
+        # Crear movimiento de stock con todos los valores calculados
+        try:
+            movement = StockMovement.objects.create(
+                product=product,
+                movement_type=movement_type,
+                quantity=quantity,
+                reason=reason,
+                user=request.user,
+                previous_quantity=previous_quantity,
+                new_quantity=new_quantity
+            )
+            
+            # Actualizar cantidad del producto
+            product.quantity = new_quantity
+            product.save()
             
             # Retornar el producto actualizado
             product.refresh_from_db()
             product_serializer = ProductSerializer(product)
             return Response(product_serializer.data)
-        
-        return Response(movement_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
     
     @action(detail=False, methods=['get'])
     def statistics(self, request):

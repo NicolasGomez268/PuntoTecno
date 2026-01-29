@@ -59,7 +59,9 @@ const ProductDetail = () => {
       loadProductData();
     } catch (error) {
       console.error('Error al actualizar stock:', error);
-      alert('Error al actualizar el stock');
+      console.error('Response data:', error.response?.data);
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || 'Error al actualizar el stock';
+      alert(errorMessage);
     }
   };
 
@@ -316,7 +318,6 @@ const ProductDetail = () => {
                   rows={3}
                   className="input-field"
                   placeholder="Ej: Compra a proveedor, Uso en reparación..."
-                  required
                 />
               </div>
 

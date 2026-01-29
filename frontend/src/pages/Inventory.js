@@ -40,7 +40,46 @@ const Inventory = () => {
       loadProducts();
     } catch (error) {
       console.error('Error al eliminar producto:', error);
-      alert('Error al eliminar el producto');
+      
+      let errorMessage = 'Error al eliminar el producto.';
+      
+      if (error.response?.status === 403) {
+        errorMessage = '🔒 No tienes permisos para eliminar productos. Solo los administradores pueden realizar esta acción.';
+      } else if (error.response?.status === 404) {
+        errorMessage = '❌ Producto no encontrado.';
+      } else if (error.response?.status === 400) {
+        errorMessage = '⚠️ No se puede eliminar este producto porque está siendo utilizado.';
+      }
+      
+      // Crear notificación estilizada
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-2xl z-50 max-w-md animate-slide-in';
+      notification.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <p class="font-semibold text-lg mb-1">Error</p>
+            <p class="text-sm">${errorMessage}</p>
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" class="flex-shrink-0 text-white hover:text-gray-200">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      `;
+      document.body.appendChild(notification);
+      
+      // Auto-eliminar después de 6 segundos
+      setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => notification.remove(), 300);
+      }, 6000);
     }
   };
 

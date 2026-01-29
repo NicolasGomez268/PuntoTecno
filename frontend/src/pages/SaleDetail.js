@@ -48,6 +48,20 @@ const SaleDetail = () => {
     'pending': 'Pendiente'
   };
 
+  const handlePrint = () => {
+    if (!showTicket) {
+      // Si el ticket no está visible, mostrarlo primero
+      setShowTicket(true);
+      // Esperar a que React renderice el componente antes de imprimir
+      setTimeout(() => {
+        window.print();
+      }, 100);
+    } else {
+      // Si ya está visible, imprimir directamente
+      window.print();
+    }
+  };
+
   const printTicket = () => {
     window.print();
   };
@@ -135,7 +149,7 @@ const SaleDetail = () => {
               </p>
             </div>
             <button
-              onClick={printTicket}
+              onClick={handlePrint}
               className="btn-secondary print:hidden"
             >
               <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,11 +310,11 @@ const SaleDetail = () => {
             </button>
 
             <button
-              onClick={() => window.print()}
+              onClick={handlePrint}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
               Imprimir Ticket
             </button>
