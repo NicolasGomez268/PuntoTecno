@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import OrderTicket from '../components/OrderTicket';
 import { ordersService } from '../services/api';
 
 const OrderDetail = () => {
@@ -8,6 +9,8 @@ const OrderDetail = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTicket, setShowTicket] = useState(false);
+  const ticketRef = useRef();
   const [error, setError] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
@@ -328,7 +331,27 @@ const OrderDetail = () => {
               </div>
             </div>
 
-            {/* Botón Editar */}
+            {/* Botones de Acción */}
+            <button
+              onClick={() => setShowTicket(!showTicket)}
+              className="w-full bg-primary hover:bg-secondary text-white font-semibold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 mb-3"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+              </svg>
+              {showTicket ? 'Ocultar Ticket' : 'Ver Ticket'}
+            </button>
+
+            <button
+              onClick={() => window.print()}
+              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2 mb-3"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Imprimir Ticket
+            </button>
+
             <button
               onClick={() => navigate(`/orders/${id}/edit`)}
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-900 font-semibold px-6 py-3 rounded-lg transition-colors flex items-center justify-center gap-2"
@@ -340,6 +363,22 @@ const OrderDetail = () => {
             </button>
           </div>
         </div>
+
+        {/* Área de Ticket para Imprimir */}
+        {showTicket && (
+          <div className="mt-8 ticket-print-area" ref={ticketRef}>
+            <div className="print:hidden mb-4">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Vista Previa del Ticket</h2>
+              <p className="text-gray-600 mb-2">Este es el ticket que se imprimirá. Se generarán 2 copias: una para el técnico y otra para el cliente.</p>
+            </div>
+            
+            {/* Copia para Técnico */}
+            <OrderTicket order={order} duplicate="TÉCNICO" />
+            
+            {/* Copia para Cliente */}
+            <OrderTicket order={order} duplicate="CLIENTE" />
+          </div>
+        )}
       </div>
     </>
   );

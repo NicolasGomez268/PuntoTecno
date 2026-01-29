@@ -56,18 +56,6 @@ const Navbar = () => {
             <Link to="/customers" className={navLinkClass('/customers')}>
               Clientes
             </Link>
-            
-            {isAdmin() && (
-              <>
-                <Link to="/users" className={navLinkClass('/users')}>
-                  Usuarios
-                </Link>
-                
-                <Link to="/reports" className={navLinkClass('/reports')}>
-                  Reportes
-                </Link>
-              </>
-            )}
           </div>
 
           {/* User Menu */}
@@ -111,18 +99,6 @@ const Navbar = () => {
           <Link to="/customers" className={navLinkClass('/customers')}>
             Clientes
           </Link>
-          
-          {isAdmin() && (
-            <>
-              <Link to="/users" className={navLinkClass('/users')}>
-                Usuarios
-              </Link>
-              
-              <Link to="/reports" className={navLinkClass('/reports')}>
-                Reportes
-              </Link>
-            </>
-          )}
         </div>
       </div>
     </nav>

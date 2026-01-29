@@ -31,10 +31,11 @@ class SaleSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'sale_number', 'date', 'customer', 'customer_name', 
             'customer_display', 'subtotal', 'discount', 'total',
-            'payment_method', 'employee', 'employee_name', 'notes',
+            'payment_method', 'payment_status', 'paid_amount', 'balance',
+            'employee', 'employee_name', 'notes',
             'items', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['sale_number', 'date', 'subtotal', 'total', 'employee']
+        read_only_fields = ['sale_number', 'date', 'subtotal', 'total', 'employee', 'balance', 'payment_status']
     
     def create(self, validated_data):
         """Crea la venta con sus items y actualiza el inventario"""

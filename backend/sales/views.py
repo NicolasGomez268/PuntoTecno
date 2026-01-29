@@ -8,6 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 from datetime import timedelta
+from decimal import Decimal
 from .models import Sale, SaleItem
 from .serializers import SaleSerializer, SaleListSerializer
 from core.permissions import IsAdmin
@@ -103,6 +104,67 @@ class SaleViewSet(viewsets.ModelViewSet):
             'top_products': list(top_products),
             'payment_methods': list(payment_methods)
         })
+    
+    @action(detail=True, methods=['post'])
+    def add_payment(self, request, pk=None):
+        """
+        Registra un pago adicional sobre una venta fiada
+        """
+        sale = self.get_object()
+        
+        # Validar que sea cuenta corriente
+        if sale.payment_method != 'account':
+            return Response(
+                {'error': 'Solo se pueden agregar pagos a ventas en cuenta corriente'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validar que tenga saldo pendiente
+        if sale.balance <= 0:
+            return Response(
+                {'error': 'Esta venta no tiene saldo pendiente'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Obtener monto del pago
+        amount = request.data.get('amount')
+        if not amount:
+            return Response(
+                {'error': 'Debe especificar el monto del pago'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            amount = Decimal(str(amount))
+        except (ValueError, TypeError):
+            return Response(
+                {'error': 'El monto debe ser un número válido'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validar que el monto no sea mayor al saldo
+        if amount > Decimal(str(sale.balance)):
+            return Response(
+                {'error': f'El monto no puede ser mayor al saldo pendiente (${sale.balance})'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Actualizar la venta
+        sale.paid_amount = Decimal(str(sale.paid_amount)) + amount
+        sale.balance = Decimal(str(sale.total)) - sale.paid_amount
+        
+        # Actualizar estado
+        if sale.balance <= 0:
+            sale.payment_status = 'paid'
+            sale.balance = 0
+        elif sale.paid_amount > 0:
+            sale.payment_status = 'partial'
+        
+        sale.save()
+        
+        # Retornar la venta actualizada
+        serializer = self.get_serializer(sale)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def daily_report(self, request):

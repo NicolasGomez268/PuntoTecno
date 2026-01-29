@@ -256,6 +256,11 @@ export const salesService = {
     const response = await api.post('/sales/sales/', data);
     return response.data;
   },
+  
+  addPayment: async (id, amount) => {
+    const response = await api.post(`/sales/sales/${id}/add_payment/`, { amount });
+    return response.data;
+  },
 
   getDashboard: async () => {
     const response = await api.get('/sales/sales/dashboard/');

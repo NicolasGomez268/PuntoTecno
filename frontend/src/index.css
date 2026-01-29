@@ -100,3 +100,240 @@ code {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Print Styles - Ocultar navegación y elementos de interfaz al imprimir */
+@media print {
+  /* Ocultar navbar y elementos de navegación */
+  nav,
+  button,
+  .print\:hidden {
+    display: none !important;
+  }
+  
+  /* Mostrar solo el área del ticket */
+  body * {
+    visibility: hidden;
+  }
+  
+  .ticket-print-area,
+  .ticket-print-area * {
+    visibility: visible !important;
+  }
+  
+  .ticket-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  
+  /* Fondo blanco para impresión */
+  body {
+    background-color: white !important;
+  }
+  
+  /* Ajustar márgenes de página */
+  @page {
+    size: letter;
+    margin: 0.5cm;
+  }
+  
+  /* Eliminar sombras que consumen tinta */
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg {
+    box-shadow: none !important;
+  }
+}
+
+/* Estilos del Ticket de Orden - Optimizado para una sola hoja */
+.ticket-page {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 15px 20px;
+  background: white;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.35;
+  page-break-after: always;
+}
+
+@media print {
+  .ticket-page {
+    page-break-after: always;
+    margin: 0;
+    padding: 12px 15px;
+    max-width: 100%;
+    font-size: 10px;
+  }
+}
+
+.ticket-header {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.business-name {
+  font-size: 20px;
+  font-weight: bold;
+  margin: 0;
+  color: #000;
+  letter-spacing: 1.5px;
+}
+
+.business-contact,
+.business-address {
+  margin: 2px 0;
+  font-size: 10px;
+  color: #333;
+}
+
+.ticket-divider {
+  border-top: 1px dashed #000;
+  margin: 8px 0;
+}
+
+.order-number-section {
+  text-align: center;
+  margin: 10px 0;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 4px 0;
+  text-decoration: underline;
+}
+
+.order-number {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 5px 0;
+  letter-spacing: 1px;
+}
+
+.order-date {
+  font-size: 10px;
+  color: #333;
+}
+
+.ticket-section {
+  margin: 8px 0;
+}
+
+.section-subtitle {
+  font-size: 12px;
+  font-weight: bold;
+  margin: 5px 0 4px 0;
+  text-decoration: underline;
+}
+
+.info-row {
+  display: flex;
+  margin: 2px 0;
+  padding: 1px 0;
+}
+
+.info-label {
+  font-weight: bold;
+  min-width: 110px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  flex: 1;
+  word-break: break-word;
+}
+
+.observations-box {
+  border: 1px solid #000;
+  padding: 8px;
+  min-height: 50px;
+  background: #fff;
+  white-space: pre-wrap;
+}
+
+.totals-section {
+  margin: 8px 0;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  border-bottom: 1px solid #ddd;
+}
+
+.total-row-main {
+  font-size: 13px;
+  font-weight: bold;
+  border-top: 2px solid #000;
+  border-bottom: 2px solid #000;
+  margin-top: 4px;
+  padding: 4px 0;
+}
+
+.total-label {
+  font-weight: bold;
+}
+
+.total-value {
+  text-align: right;
+}
+
+.terms-section {
+  margin-top: 10px;
+}
+
+.terms-list {
+  font-size: 9px;
+  margin: 4px 0;
+  padding-left: 18px;
+  line-height: 1.5;
+}
+
+.terms-list li {
+  margin: 2px 0;
+}
+
+.signatures-section {
+  display: flex;
+  justify-content: space-around;
+  margin: 18px 0 10px 0;
+  gap: 30px;
+}
+
+.signature-box {
+  flex: 1;
+  text-align: center;
+}
+
+.signature-line {
+  border-top: 1px solid #000;
+  margin-bottom: 4px;
+  margin-top: 25px;
+}
+
+.signature-label {
+  font-size: 10px;
+  font-weight: bold;
+  margin: 2px 0;
+}
+
+.signature-sublabel {
+  font-size: 9px;
+  color: #666;
+  margin: 1px 0;
+}
+
+.duplicate-indicator {
+  text-align: center;
+  margin-top: 10px;
+  padding: 6px;
+  border: 2px solid #000;
+  font-size: 13px;
+  font-weight: bold;
+  background: #f0f0f0;
+}
+

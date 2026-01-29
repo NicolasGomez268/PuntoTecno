@@ -98,11 +98,11 @@ const EmployeeDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm font-medium">Mis Órdenes</p>
-                <p className="text-3xl font-bold mt-2">{dashboardData?.total || 0}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-blue-100 text-sm font-medium mb-2">Mis Órdenes</p>
+                <p className="text-3xl font-bold">{dashboardData?.total || 0}</p>
               </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
+              <div className="bg-white bg-opacity-20 rounded-lg p-3 flex-shrink-0 ml-3">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -110,13 +110,13 @@ const EmployeeDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg shadow-lg p-6 text-white">
+          <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg shadow-lg p-6 text-white">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-yellow-100 text-sm font-medium">En Servicio</p>
-                <p className="text-3xl font-bold mt-2">{dashboardData?.in_service || 0}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-cyan-100 text-sm font-medium mb-2">En Servicio</p>
+                <p className="text-3xl font-bold">{dashboardData?.in_service || 0}</p>
               </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
+              <div className="bg-white bg-opacity-20 rounded-lg p-3 flex-shrink-0 ml-3">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
                 </svg>
@@ -124,27 +124,27 @@ const EmployeeDashboard = () => {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+          <div className="bg-white border-2 border-blue-200 rounded-lg shadow-lg p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm font-medium">Listas</p>
-                <p className="text-3xl font-bold mt-2">{dashboardData?.ready || 0}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-gray-600 text-sm font-medium mb-2">Listas</p>
+                <p className="text-3xl font-bold text-primary">{dashboardData?.ready || 0}</p>
               </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="bg-blue-100 rounded-lg p-3 flex-shrink-0 ml-3">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                 </svg>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+          <div className="bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg shadow-lg p-6 text-white">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm font-medium">Entregadas</p>
-                <p className="text-3xl font-bold mt-2">{dashboardData?.completed || 0}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sky-100 text-sm font-medium mb-2">Entregadas</p>
+                <p className="text-3xl font-bold">{dashboardData?.completed || 0}</p>
               </div>
-              <div className="bg-white bg-opacity-20 rounded-lg p-3">
+              <div className="bg-white bg-opacity-20 rounded-lg p-3 flex-shrink-0 ml-3">
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>

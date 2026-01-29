@@ -84,6 +84,12 @@ class Product(models.Model):
         verbose_name='Precio de venta'
     )
     
+    supplier = models.CharField(
+        max_length=200,
+        blank=True,
+        verbose_name='Proveedor'
+    )
+    
     is_active = models.BooleanField(
         default=True,
         verbose_name='Activo'

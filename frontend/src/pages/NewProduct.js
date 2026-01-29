@@ -18,7 +18,8 @@ const NewProduct = () => {
     sale_price: '',
     unit_price: '',
     quantity: '0',
-    min_stock: '5'
+    min_stock: '5',
+    supplier: ''
   });
 
   useEffect(() => {
@@ -147,6 +148,20 @@ const NewProduct = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Proveedor
+                  </label>
+                  <input
+                    type="text"
+                    name="supplier"
+                    value={formData.supplier}
+                    onChange={handleChange}
+                    placeholder="Nombre del proveedor"
+                    className="input-field"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Categoría *
                   </label>
                   <select
@@ -171,13 +186,13 @@ const NewProduct = () => {
             {/* Precios y costos */}
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Precios</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Precio de Venta *
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 font-semibold text-lg">$</span>
                     <input
                       type="number"
                       name="sale_price"
@@ -187,17 +202,17 @@ const NewProduct = () => {
                       min="0"
                       step="0.01"
                       placeholder="0.00"
-                      className="input-field pl-8"
+                      className="w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Costo de Compra
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 font-semibold text-lg">$</span>
                     <input
                       type="number"
                       name="unit_price"
@@ -206,7 +221,7 @@ const NewProduct = () => {
                       min="0"
                       step="0.01"
                       placeholder="0.00"
-                      className="input-field pl-8"
+                      className="w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
                     />
                   </div>
                 </div>

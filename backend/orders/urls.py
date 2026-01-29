@@ -2,10 +2,10 @@
 URLs para la app Orders
 """
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from .views import CustomerViewSet, RepairOrderViewSet
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register(r'customers', CustomerViewSet, basename='customer')
 router.register(r'orders', RepairOrderViewSet, basename='order')
 

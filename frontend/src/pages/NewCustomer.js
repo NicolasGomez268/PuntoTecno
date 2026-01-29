@@ -30,6 +30,21 @@ const NewCustomer = () => {
     setLoading(true);
 
     try {
+      // Validar que el número de cliente no esté duplicado si se proporciona
+      if (formData.customer_number) {
+        const allCustomers = await customersService.getAll();
+        const customersArray = Array.isArray(allCustomers) ? allCustomers : (allCustomers?.results || []);
+        const duplicate = customersArray.find(
+          c => c.customer_number === formData.customer_number
+        );
+        
+        if (duplicate) {
+          setError(`El número de cliente "${formData.customer_number}" ya está en uso`);
+          setLoading(false);
+          return;
+        }
+      }
+      
       await customersService.create(formData);
       // Redirigir a la lista de clientes después de crear
       navigate('/customers');

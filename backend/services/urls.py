@@ -2,10 +2,10 @@
 URLs para servicios
 """
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
+from rest_framework.routers import SimpleRouter
 from .views import ServiceViewSet
 
-router = DefaultRouter()
+router = SimpleRouter()
 router.register(r'', ServiceViewSet, basename='service')
 
 urlpatterns = [

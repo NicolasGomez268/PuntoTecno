@@ -121,7 +121,7 @@ const Inventory = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <p className="text-sm text-gray-600 mb-1">Valor Total</p>
             <p className="text-3xl font-bold text-blue-600">
-              ${products.reduce((sum, p) => sum + (p.price * p.quantity), 0).toLocaleString('es-AR')}
+              ${products.reduce((sum, p) => sum + ((p.sale_price || 0) * (p.quantity || 0)), 0).toLocaleString('es-AR')}
             </p>
           </div>
         </div>

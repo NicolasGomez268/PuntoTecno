@@ -18,6 +18,13 @@ class Sale(models.Model):
         ('card', 'Tarjeta'),
         ('transfer', 'Transferencia'),
         ('multiple', 'Múltiple'),
+        ('account', 'Cuenta Corriente'),
+    )
+    
+    PAYMENT_STATUS_CHOICES = (
+        ('paid', 'Pagado'),
+        ('partial', 'Pago Parcial'),
+        ('pending', 'Pendiente'),
     )
 
     sale_number = models.CharField(
@@ -75,6 +82,27 @@ class Sale(models.Model):
         verbose_name='Método de Pago'
     )
     
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='paid',
+        verbose_name='Estado de Pago'
+    )
+    
+    paid_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        verbose_name='Monto Pagado'
+    )
+    
+    balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        verbose_name='Saldo Pendiente'
+    )
+    
     employee = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -117,6 +145,24 @@ class Sale(models.Model):
         items = self.items.all()
         self.subtotal = sum(item.subtotal for item in items)
         self.total = self.subtotal - self.discount
+        
+        # Calcular balance según método de pago
+        if self.payment_method == 'account':
+            # Cuenta corriente - calcular saldo pendiente
+            self.balance = self.total - self.paid_amount
+            if self.balance <= 0:
+                self.payment_status = 'paid'
+                self.balance = 0
+            elif self.paid_amount > 0:
+                self.payment_status = 'partial'
+            else:
+                self.payment_status = 'pending'
+        else:
+            # Otros métodos de pago - considerado como pagado
+            self.paid_amount = self.total
+            self.balance = 0
+            self.payment_status = 'paid'
+        
         self.save()
 
 

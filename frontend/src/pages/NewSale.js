@@ -18,6 +18,7 @@ const NewSale = () => {
     customer_name: '',
     discount: '0',
     payment_method: 'cash',
+    paid_amount: '',
     notes: ''
   });
 
@@ -58,7 +59,25 @@ const NewSale = () => {
             : item
         ));
       } else {
-        alert('No hay suficiente stock disponible');
+        // Notificación mejorada para stock insuficiente
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-start gap-3 z-50 max-w-md';
+        notification.innerHTML = `
+          <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div class="flex-1">
+            <p class="font-bold text-sm mb-1">Stock Insuficiente</p>
+            <p class="text-sm">El producto "${product.name}" solo tiene ${product.quantity} unidades disponibles y ya has agregado ${existing.quantity} al carrito.</p>
+          </div>
+          <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200 flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000);
       }
     } else {
       if (product.quantity > 0) {
@@ -71,7 +90,26 @@ const NewSale = () => {
           max_stock: product.quantity
         }]);
       } else {
-        alert('Producto sin stock');
+        // Notificación mejorada para producto sin stock
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-start gap-3 z-50 max-w-md';
+        notification.innerHTML = `
+          <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div class="flex-1">
+            <p class="font-bold text-sm mb-1">Producto Sin Stock</p>
+            <p class="text-sm">El producto "${product.name}" (SKU: ${product.sku}) no tiene unidades disponibles en el inventario.</p>
+            <p class="text-xs mt-1 text-red-100">Por favor, verifica el stock antes de intentar venderlo.</p>
+          </div>
+          <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200 flex-shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        `;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 5000);
       }
     }
     setSearchProduct('');
@@ -88,7 +126,26 @@ const NewSale = () => {
           : item
       ));
     } else {
-      alert('No hay suficiente stock disponible');
+      // Notificación mejorada para límite de stock
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-orange-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-start gap-3 z-50 max-w-md';
+      notification.innerHTML = `
+        <svg class="w-6 h-6 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div class="flex-1">
+          <p class="font-bold text-sm mb-1">Límite de Stock Alcanzado</p>
+          <p class="text-sm">El producto "${item.product_name}" solo tiene ${item.max_stock} unidades disponibles en inventario.</p>
+          <p class="text-xs mt-1 text-orange-100">Stock máximo: ${item.max_stock} unidades</p>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-white hover:text-gray-200 flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      `;
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 4000);
     }
   };
 
@@ -129,8 +186,25 @@ const NewSale = () => {
       };
 
       await salesService.createSale(saleData);
-      alert('Venta registrada exitosamente');
-      navigate('/sales');
+      
+      // Mostrar notificación de éxito
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg z-50 flex items-center gap-3';
+      toast.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span class="font-medium">Venta registrada exitosamente</span>
+      `;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.transition = 'opacity 0.5s';
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
+      
+      setTimeout(() => navigate('/sales'), 500);
     } catch (error) {
       console.error('Error al crear venta:', error);
       alert('Error al registrar la venta. ' + (error.response?.data?.detail || 'Verifica los datos.'));
@@ -365,7 +439,33 @@ const NewSale = () => {
                   <option value="card">Tarjeta</option>
                   <option value="transfer">Transferencia</option>
                   <option value="multiple">Múltiple</option>
+                  <option value="account">Cuenta Corriente</option>
                 </select>
+                
+                {/* Campo para pago parcial cuando es cuenta corriente */}
+                {formData.payment_method === 'account' && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Monto a pagar ahora (opcional)
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 text-lg">$</span>
+                      <input
+                        type="number"
+                        name="paid_amount"
+                        value={formData.paid_amount}
+                        onChange={(e) => setFormData({ ...formData, paid_amount: e.target.value })}
+                        placeholder="0.00"
+                        className="input-field"
+                        min="0"
+                        step="0.01"
+                      />
+                    </div>
+                    <p className="text-sm text-gray-500 mt-2">
+                      Saldo pendiente: ${(calculateTotal() - (parseFloat(formData.paid_amount) || 0)).toLocaleString('es-AR')}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Notas */}

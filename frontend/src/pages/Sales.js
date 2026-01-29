@@ -47,7 +47,14 @@ const Sales = () => {
     'cash': 'Efectivo',
     'card': 'Tarjeta',
     'transfer': 'Transferencia',
-    'multiple': 'Múltiple'
+    'multiple': 'Múltiple',
+    'account': 'C. Corriente'
+  };
+  
+  const paymentStatusLabels = {
+    'paid': 'Pagado',
+    'partial': 'Parcial',
+    'pending': 'Pendiente'
   };
 
   if (loading) {
@@ -92,14 +99,14 @@ const Sales = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-blue-100 text-sm font-medium">Ventas Hoy</p>
-                  <p className="text-3xl font-bold mt-2">{stats.sales_today.count}</p>
-                  <p className="text-blue-100 text-sm mt-1">
+                <div className="flex-1 min-w-0">
+                  <p className="text-blue-100 text-sm font-medium mb-2">Ventas Hoy</p>
+                  <p className="text-3xl font-bold mb-1">{stats.sales_today.count}</p>
+                  <p className="text-blue-100 text-base font-medium">
                     ${stats.sales_today.total.toLocaleString('es-AR')}
                   </p>
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-full p-3">
+                <div className="bg-white bg-opacity-20 rounded-full p-3 flex-shrink-0 ml-3">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
@@ -107,16 +114,16 @@ const Sales = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-lg shadow-lg p-6 text-white">
+            <div className="bg-gradient-to-br from-cyan-500 to-cyan-600 rounded-lg shadow-lg p-6 text-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-green-100 text-sm font-medium">Ventas del Mes</p>
-                  <p className="text-3xl font-bold mt-2">{stats.sales_month.count}</p>
-                  <p className="text-green-100 text-sm mt-1">
+                <div className="flex-1 min-w-0">
+                  <p className="text-cyan-100 text-sm font-medium mb-2">Ventas del Mes</p>
+                  <p className="text-3xl font-bold mb-1">{stats.sales_month.count}</p>
+                  <p className="text-cyan-100 text-base font-medium">
                     ${stats.sales_month.total.toLocaleString('es-AR')}
                   </p>
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-full p-3">
+                <div className="bg-white bg-opacity-20 rounded-full p-3 flex-shrink-0 ml-3">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
@@ -124,38 +131,38 @@ const Sales = () => {
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+            <div className="bg-white border-2 border-blue-200 rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-purple-100 text-sm font-medium">Promedio</p>
-                  <p className="text-3xl font-bold mt-2">
+                <div className="flex-1 min-w-0">
+                  <p className="text-gray-600 text-sm font-medium mb-2">Promedio</p>
+                  <p className="text-3xl font-bold text-primary mb-1">
                     ${stats.sales_today.count > 0 
                       ? (stats.sales_today.total / stats.sales_today.count).toFixed(0).toLocaleString('es-AR')
                       : '0'
                     }
                   </p>
-                  <p className="text-purple-100 text-sm mt-1">Por venta hoy</p>
+                  <p className="text-gray-600 text-sm font-medium">Por venta hoy</p>
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-full p-3">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="bg-blue-100 rounded-full p-3 flex-shrink-0 ml-3">
+                  <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg shadow-lg p-6 text-white">
+            <div className="bg-gradient-to-br from-sky-500 to-sky-600 rounded-lg shadow-lg p-6 text-white">
               <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-orange-100 text-sm font-medium">Más Vendido</p>
-                  <p className="text-xl font-bold mt-2 truncate">
+                <div className="flex-1 min-w-0 pr-2">
+                  <p className="text-sky-100 text-sm font-medium mb-2">Más Vendido</p>
+                  <p className="text-xl font-bold mb-1 break-words line-clamp-2">
                     {stats.top_products[0]?.product__name || 'N/A'}
                   </p>
-                  <p className="text-orange-100 text-sm mt-1">
+                  <p className="text-sky-100 text-sm font-medium">
                     {stats.top_products[0]?.quantity || 0} unidades
                   </p>
                 </div>
-                <div className="bg-white bg-opacity-20 rounded-full p-3">
+                <div className="bg-white bg-opacity-20 rounded-full p-3 flex-shrink-0 ml-2">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
                   </svg>
@@ -194,6 +201,7 @@ const Sales = () => {
                 <option value="card">Tarjeta</option>
                 <option value="transfer">Transferencia</option>
                 <option value="multiple">Múltiple</option>
+                <option value="account">C. Corriente</option>
               </select>
             </div>
           </div>
@@ -253,14 +261,26 @@ const Sales = () => {
                         </span>
                       </td>
                       <td className="p-4">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          sale.payment_method === 'cash' ? 'bg-green-100 text-green-800' :
-                          sale.payment_method === 'card' ? 'bg-blue-100 text-blue-800' :
-                          sale.payment_method === 'transfer' ? 'bg-purple-100 text-purple-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          {paymentMethods[sale.payment_method]}
-                        </span>
+                        <div>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            sale.payment_method === 'cash' ? 'bg-green-100 text-green-800' :
+                            sale.payment_method === 'card' ? 'bg-blue-100 text-blue-800' :
+                            sale.payment_method === 'transfer' ? 'bg-purple-100 text-purple-800' :
+                            sale.payment_method === 'account' ? 'bg-orange-100 text-orange-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {paymentMethods[sale.payment_method]}
+                          </span>
+                          {sale.payment_method === 'account' && sale.payment_status && (
+                            <span className={`ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                              sale.payment_status === 'paid' ? 'bg-green-100 text-green-700' :
+                              sale.payment_status === 'partial' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-red-100 text-red-700'
+                            }`}>
+                              {paymentStatusLabels[sale.payment_status]}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="p-4">
                         <span className="text-sm text-gray-600">{sale.employee_name}</span>
