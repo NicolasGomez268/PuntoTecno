@@ -58,7 +58,20 @@ const NewOrder = () => {
     setLoading(true);
 
     try {
-      await ordersService.create(formData);
+      // Preparar datos para enviar
+      const dataToSend = { ...formData };
+      
+      // Si no es cuenta corriente, no enviar paid_amount
+      if (formData.payment_method !== 'account') {
+        delete dataToSend.paid_amount;
+      } else {
+        // Si es cuenta corriente y no hay paid_amount, poner 0
+        if (!dataToSend.paid_amount) {
+          dataToSend.paid_amount = 0;
+        }
+      }
+      
+      await ordersService.create(dataToSend);
       navigate('/orders');
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al crear la orden');
