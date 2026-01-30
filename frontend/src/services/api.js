@@ -67,7 +67,7 @@ export default api;
  */
 export const authService = {
   login: async (username, password) => {
-    const response = await axios.post('http://localhost:8000/api/token/', {
+    const response = await api.post('/token/', {
       username,
       password,
     });
