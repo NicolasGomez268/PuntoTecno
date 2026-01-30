@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Pagination from '../components/Pagination';
 import { salesService } from '../services/api';
 
 /**
@@ -13,21 +14,28 @@ const Sales = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPayment, setFilterPayment] = useState('');
   const [stats, setStats] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [currentPage]);
 
   const loadData = async () => {
     try {
       const [salesData, dashboardData] = await Promise.all([
-        salesService.getSales(),
+        salesService.getSales({ page: currentPage, page_size: 50 }),
         salesService.getDashboard()
       ]);
       // Manejar respuesta paginada o array directo
       const salesArray = Array.isArray(salesData) ? salesData : (salesData?.results || []);
       setSales(salesArray);
       setStats(dashboardData);
+      
+      // Calcular total de páginas
+      if (salesData.count) {
+        setTotalPages(Math.ceil(salesData.count / 50));
+      }
     } catch (error) {
       console.error('Error al cargar ventas:', error);
       setSales([]);
@@ -303,6 +311,17 @@ const Sales = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Paginación */}
+          {!loading && filteredSales.length > 0 && (
+            <div className="mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
       </div>
     </>

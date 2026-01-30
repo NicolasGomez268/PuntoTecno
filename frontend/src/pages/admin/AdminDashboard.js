@@ -195,7 +195,18 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 gap-4">
               <button
                 onClick={() => navigate('/customers/new')}
-                className="bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white p-5 rounded-lg shadow-md flex items-center justify-between group transition-all"
+                className="bg-gradient-to-br from-blue-500 to-blue-600 text-white p-5 rounded-lg shadow-md flex items-center justify-between group transition-all duration-300"
+                style={{ boxShadow: '0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%)';
+                  e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.background = 'linear-gradient(to bottom right, #3b82f6, #2563eb)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2)';
+                }}
               >
                 <div className="text-left">
                   <p className="font-semibold text-lg">Nuevo Cliente</p>
@@ -208,7 +219,18 @@ const AdminDashboard = () => {
 
               <button
                 onClick={() => navigate('/orders/new')}
-                className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white p-5 rounded-lg shadow-md flex items-center justify-between group transition-all"
+                className="bg-gradient-to-br from-cyan-500 to-cyan-600 text-white p-5 rounded-lg shadow-md flex items-center justify-between group transition-all duration-300"
+                style={{ boxShadow: '0 4px 6px -1px rgba(6, 182, 212, 0.3), 0 2px 4px -1px rgba(6, 182, 212, 0.2)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #06b6d4 0%, #0891b2 50%, #0e7490 100%)';
+                  e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(6, 182, 212, 0.4), 0 10px 10px -5px rgba(6, 182, 212, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.background = 'linear-gradient(to bottom right, #06b6d4, #0891b2)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(6, 182, 212, 0.3), 0 2px 4px -1px rgba(6, 182, 212, 0.2)';
+                }}
               >
                 <div className="text-left">
                   <p className="font-semibold text-lg">Nueva Orden</p>
@@ -221,7 +243,18 @@ const AdminDashboard = () => {
 
               <button
                 onClick={() => navigate('/inventory')}
-                className="bg-gradient-to-br from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white p-5 rounded-lg shadow-md flex items-center justify-between group transition-all"
+                className="bg-gradient-to-br from-sky-500 to-sky-600 text-white p-5 rounded-lg shadow-md flex items-center justify-between group transition-all duration-300"
+                style={{ boxShadow: '0 4px 6px -1px rgba(14, 165, 233, 0.3), 0 2px 4px -1px rgba(14, 165, 233, 0.2)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #0ea5e9 0%, #0284c7 50%, #0369a1 100%)';
+                  e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(14, 165, 233, 0.4), 0 10px 10px -5px rgba(14, 165, 233, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.background = 'linear-gradient(to bottom right, #0ea5e9, #0284c7)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(14, 165, 233, 0.3), 0 2px 4px -1px rgba(14, 165, 233, 0.2)';
+                }}
               >
                 <div className="text-left">
                   <p className="font-semibold text-lg">Inventario</p>

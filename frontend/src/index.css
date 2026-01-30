@@ -53,11 +53,26 @@ code {
 
 /* Button Animations */
 .btn-primary {
-  @apply bg-gradient-to-r from-primary to-secondary text-white font-semibold py-2 px-6 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200;
+  @apply bg-gradient-to-r from-primary to-secondary text-white font-semibold py-2 px-6 rounded-lg shadow-md transition-all duration-300;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3), 0 2px 4px -1px rgba(59, 130, 246, 0.2);
+}
+
+.btn-primary:hover {
+  transform: translateY(-5px) scale(1.05);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.3);
 }
 
 .btn-secondary {
-  @apply bg-white text-primary border-2 border-primary font-semibold py-2 px-6 rounded-lg hover:bg-primary hover:text-white transition-all duration-200;
+  @apply bg-white text-primary border-2 border-primary font-semibold py-2 px-6 rounded-lg transition-all duration-300;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2), 0 2px 4px -1px rgba(59, 130, 246, 0.1);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-5px) scale(1.05);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.3);
 }
 
 /* Status Badges */
@@ -352,5 +367,274 @@ code {
   font-size: 13px;
   font-weight: bold;
   background: #f0f0f0;
+}
+
+/* ========================================
+   RESPONSIVE STYLES - MOBILE FIRST
+   ======================================== */
+
+/* Mobile Styles (hasta 768px) */
+@media (max-width: 768px) {
+  /* Espaciado general más compacto */
+  .max-w-7xl {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Títulos más pequeños en móvil */
+  h1 {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  h3 {
+    font-size: 1.125rem !important;
+  }
+
+  /* Tablas responsive - scroll horizontal suave */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    font-size: 0.875rem;
+    min-width: 600px;
+  }
+
+  table th,
+  table td {
+    padding: 0.5rem !important;
+    white-space: nowrap;
+  }
+
+  /* Botones más compactos en móvil pero táctiles */
+  .btn-primary,
+  .btn-secondary,
+  button {
+    font-size: 0.875rem;
+    padding: 0.625rem 1rem;
+    min-height: 44px; /* Tamaño mínimo para touch */
+  }
+
+  /* Botones hover disabled en móvil */
+  .btn-primary:hover,
+  .btn-secondary:hover {
+    transform: none;
+  }
+
+  /* Inputs más grandes para móvil (mejor usabilidad táctil) */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  textarea,
+  select {
+    font-size: 16px !important; /* Evita zoom en iOS */
+    padding: 0.75rem;
+    min-height: 44px;
+  }
+
+  /* Cards con menos padding */
+  .bg-white.rounded-lg.p-6 {
+    padding: 1rem !important;
+  }
+
+  .bg-white.rounded-lg.p-4 {
+    padding: 0.75rem !important;
+  }
+
+  /* Stats cards en 2 columnas en móvil */
+  .grid.grid-cols-1.md\\:grid-cols-4,
+  .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem;
+  }
+
+  /* Stats card más compacto */
+  .grid.grid-cols-1.md\\:grid-cols-4 > div,
+  .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 > div {
+    padding: 0.75rem !important;
+  }
+
+  /* Texto de stats más pequeño */
+  .grid > div p.text-sm {
+    font-size: 0.75rem !important;
+  }
+
+  .grid > div p.text-3xl {
+    font-size: 1.5rem !important;
+  }
+
+  /* Formularios en columna única */
+  .grid.grid-cols-1.md\\:grid-cols-2,
+  .grid.grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Ocultar email en tabla de clientes móvil */
+  .overflow-x-auto table tbody tr td:nth-child(5),
+  .overflow-x-auto table thead tr th:nth-child(5) {
+    display: none;
+  }
+
+  /* Filtros de estado en columna */
+  .flex.flex-wrap.gap-2 button {
+    flex: 1;
+    min-width: calc(50% - 0.25rem);
+  }
+
+  /* Modal más grande en móvil */
+  .fixed.inset-0 {
+    padding: 1rem;
+  }
+
+  .fixed.inset-0 > div {
+    max-width: 100%;
+    margin: auto;
+  }
+
+  /* Alertas más compactas */
+  .bg-red-50,
+  .bg-yellow-50,
+  .bg-green-50,
+  .bg-blue-50,
+  .border-l-4 {
+    padding: 0.75rem !important;
+    font-size: 0.875rem;
+  }
+
+  /* Reducir padding de contenedores principales */
+  .py-8 {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  .mb-8 {
+    margin-bottom: 1.5rem !important;
+  }
+
+  .mb-6 {
+    margin-bottom: 1rem !important;
+  }
+
+  /* Botones de acción en tablas más pequeños */
+  table button,
+  table a.inline-flex {
+    padding: 0.375rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  table button svg,
+  table a svg {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  /* Header con botón apilado */
+  .mb-8.flex.justify-between {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .mb-8.flex.justify-between button {
+    width: 100%;
+  }
+
+  /* Paginación más compacta */
+  nav[aria-label="Pagination"] button {
+    padding: 0.375rem 0.625rem;
+    font-size: 0.875rem;
+  }
+
+  /* Search y filtros stacked */
+  .flex.flex-col.md\\:flex-row,
+  .flex.flex-col.lg\\:flex-row {
+    flex-direction: column !important;
+  }
+
+  /* Iconos más visibles en móvil */
+  svg.w-5.h-5 {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+
+  /* Espaciado entre elementos reducido */
+  .gap-4 {
+    gap: 0.75rem !important;
+  }
+
+  .gap-6 {
+    gap: 1rem !important;
+  }
+
+  /* Logo más pequeño en navbar móvil */
+  nav img {
+    height: 2.5rem !important;
+  }
+
+  nav .text-xl {
+    font-size: 1rem !important;
+  }
+
+  /* User info oculto en navbar móvil (ya está con sm:block) */
+  .hidden.sm\\:block {
+    display: none !important;
+  }
+}
+
+/* Tablet adjustments (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Cards en 2 columnas para tablet */
+  .grid.grid-cols-1.md\\:grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  table {
+    font-size: 0.9rem;
+  }
+
+  h1 {
+    font-size: 2rem !important;
+  }
+
+  /* Mantener algún padding */
+  .py-8 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+}
+
+/* Extra Small Mobile (hasta 375px - iPhone SE, etc) */
+@media (max-width: 375px) {
+  /* Stats en columna única para pantallas muy pequeñas */
+  .grid.grid-cols-1.md\\:grid-cols-4,
+  .grid.grid-cols-1.md\\:grid-cols-2.lg\\:grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Filtros en columna total */
+  .flex.flex-wrap.gap-2 button {
+    min-width: 100%;
+  }
+
+  /* Padding aún más reducido */
+  .max-w-7xl {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  h1 {
+    font-size: 1.25rem !important;
+  }
+
+  table {
+    font-size: 0.8rem;
+  }
 }
 

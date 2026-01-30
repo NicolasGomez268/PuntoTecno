@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Pagination from '../components/Pagination';
 import { customersService } from '../services/api';
 
 const Customers = () => {
@@ -10,20 +11,28 @@ const Customers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [deleteModal, setDeleteModal] = useState({ show: false, customer: null });
   const [deleting, setDeleting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
     loadCustomers();
-  }, []);
+  }, [currentPage]);
 
   const loadCustomers = async () => {
     try {
       setLoading(true);
-      const data = await customersService.getAll();
+      const data = await customersService.getAll({ page: currentPage, page_size: 50 });
       console.log('Datos recibidos de la API:', data);
       // La API devuelve un objeto con paginación, los clientes están en 'results'
       const clientsArray = data.results || data;
       setCustomers(Array.isArray(clientsArray) ? clientsArray : []);
+      
+      // Calcular total de páginas
+      if (data.count) {
+        setTotalPages(Math.ceil(data.count / 50));
+      }
+      
       setError('');
     } catch (err) {
       setError('Error al cargar los clientes');
@@ -106,24 +115,19 @@ const Customers = () => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Búsqueda */}
             <div className="flex-1 max-w-md">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Buscar por DNI, nombre, teléfono..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                />
-                <svg className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
+              <input
+                type="text"
+                placeholder="Buscar por DNI, nombre, teléfono..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+              />
             </div>
 
             {/* Botón agregar */}
             <button
               onClick={() => navigate('/customers/new')}
-              className="bg-primary hover:bg-primary/90 text-white font-semibold px-6 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 shadow-sm"
+              className="btn-primary flex items-center gap-2"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -224,10 +228,14 @@ const Customers = () => {
           )}
         </div>
 
-        {/* Footer con total */}
+        {/* Footer con paginación */}
         {!loading && !error && filteredCustomers.length > 0 && (
-          <div className="mt-4 text-sm text-gray-600">
-            Mostrando {filteredCustomers.length} de {customers.length} clientes
+          <div className="mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
 

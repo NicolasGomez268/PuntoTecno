@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import Pagination from '../components/Pagination';
 import { inventoryService } from '../services/api';
 
 /**
@@ -13,17 +14,24 @@ const Inventory = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     loadProducts();
-  }, []);
+  }, [currentPage]);
 
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const data = await inventoryService.getProducts();
+      const data = await inventoryService.getProducts({ page: currentPage, page_size: 50 });
       const productsArray = data.results || data;
       setProducts(Array.isArray(productsArray) ? productsArray : []);
+      
+      // Calcular total de páginas
+      if (data.count) {
+        setTotalPages(Math.ceil(data.count / 50));
+      }
     } catch (error) {
       console.error('Error al cargar productos:', error);
       setProducts([]);
@@ -294,6 +302,17 @@ const Inventory = () => {
               </tbody>
             </table>
           </div>
+          
+          {/* Paginación */}
+          {!loading && filteredProducts.length > 0 && (
+            <div className="mt-4">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
         </div>
       </div>
     </>

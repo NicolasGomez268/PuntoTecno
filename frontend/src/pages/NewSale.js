@@ -13,6 +13,7 @@ const NewSale = () => {
   const [customers, setCustomers] = useState([]);
   const [cart, setCart] = useState([]);
   const [searchProduct, setSearchProduct] = useState('');
+  const [searchingProducts, setSearchingProducts] = useState(false);
   const [formData, setFormData] = useState({
     customer: '',
     customer_name: '',
@@ -23,31 +24,45 @@ const NewSale = () => {
   });
 
   useEffect(() => {
-    loadData();
+    loadCustomers();
   }, []);
 
-  const loadData = async () => {
+  // Búsqueda de productos en tiempo real desde el backend
+  useEffect(() => {
+    const searchProducts = async () => {
+      if (searchProduct.length < 2) {
+        setProducts([]);
+        return;
+      }
+
+      try {
+        setSearchingProducts(true);
+        const productsData = await inventoryService.getProducts({ search: searchProduct, page_size: 20 });
+        const productsArray = Array.isArray(productsData) ? productsData : (productsData?.results || []);
+        setProducts(productsArray);
+      } catch (error) {
+        console.error('Error al buscar productos:', error);
+        setProducts([]);
+      } finally {
+        setSearchingProducts(false);
+      }
+    };
+
+    // Debounce: esperar 300ms después de que el usuario deje de escribir
+    const timeoutId = setTimeout(searchProducts, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchProduct]);
+
+  const loadCustomers = async () => {
     try {
-      const [productsData, customersData] = await Promise.all([
-        inventoryService.getProducts(),
-        customersService.getAll()
-      ]);
-      // Manejar respuesta paginada o array directo
-      const productsArray = Array.isArray(productsData) ? productsData : (productsData?.results || []);
+      const customersData = await customersService.getAll();
       const customersArray = Array.isArray(customersData) ? customersData : (customersData?.results || []);
-      setProducts(productsArray);
       setCustomers(customersArray);
     } catch (error) {
-      console.error('Error al cargar datos:', error);
-      setProducts([]);
+      console.error('Error al cargar clientes:', error);
       setCustomers([]);
     }
   };
-
-  const filteredProducts = Array.isArray(products) ? products.filter(p =>
-    p.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
-    p.sku.toLowerCase().includes(searchProduct.toLowerCase())
-  ) : [];
 
   const addToCart = (product) => {
     const existing = cart.find(item => item.product === product.id);
@@ -248,12 +263,17 @@ const NewSale = () => {
                 />
                 {searchProduct && (
                   <div className="border border-gray-200 rounded-lg max-h-60 overflow-y-auto">
-                    {filteredProducts.length === 0 ? (
+                    {searchingProducts ? (
+                      <div className="p-4 text-center text-gray-500">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                        <p className="mt-2 text-sm">Buscando productos...</p>
+                      </div>
+                    ) : products.length === 0 ? (
                       <div className="p-4 text-center text-gray-500">
                         No se encontraron productos
                       </div>
                     ) : (
-                      filteredProducts.slice(0, 10).map(product => (
+                      products.map(product => (
                         <button
                           key={product.id}
                           type="button"
