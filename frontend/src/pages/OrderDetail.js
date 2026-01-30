@@ -13,6 +13,9 @@ const OrderDetail = () => {
   const ticketRef = useRef();
   const [error, setError] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   const STATUS_LABELS = {
     received: 'Recibido',
@@ -47,7 +50,14 @@ const OrderDetail = () => {
   const PAYMENT_METHODS = {
     not_paid: 'Sin Abonar',
     cash: 'Efectivo',
-    transfer: 'Transferencia'
+    transfer: 'Transferencia',
+    account: 'C. Corriente'
+  };
+  
+  const PAYMENT_STATUS_LABELS = {
+    'paid': 'Pagado',
+    'partial': 'Pago Parcial',
+    'pending': 'Pendiente'
   };
 
   useEffect(() => {
@@ -80,6 +90,46 @@ const OrderDetail = () => {
       console.error('Error:', err);
     } finally {
       setUpdatingStatus(false);
+    }
+  };
+  
+  const handleAddPayment = async (e) => {
+    e.preventDefault();
+    
+    const amount = parseFloat(paymentAmount);
+    if (!amount || amount <= 0) {
+      alert('Ingrese un monto válido');
+      return;
+    }
+    
+    if (amount > order.balance) {
+      alert(`El monto no puede ser mayor al saldo pendiente ($${order.balance.toLocaleString('es-AR')})`);
+      return;
+    }
+    
+    try {
+      setProcessingPayment(true);
+      const updatedOrder = await ordersService.addPayment(id, amount);
+      setOrder(updatedOrder);
+      setPaymentAmount('');
+      setShowPaymentModal(false);
+      
+      // Mostrar notificación de éxito
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50';
+      toast.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>Pago registrado exitosamente</span>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    } catch (err) {
+      console.error('Error al registrar pago:', err);
+      alert('Error al registrar el pago');
+    } finally {
+      setProcessingPayment(false);
     }
   };
 
@@ -301,10 +351,58 @@ const OrderDetail = () => {
                   <span className="text-sm text-gray-600">Adelanto/Seña</span>
                   <span className="font-semibold text-gray-900">${parseFloat(order.deposit_amount).toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center pb-2 border-b">
                   <span className="text-sm text-gray-600">Método de Pago</span>
-                  <span className="font-medium text-gray-900">{PAYMENT_METHODS[order.payment_method]}</span>
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                    order.payment_method === 'cash' ? 'bg-green-100 text-green-800' :
+                    order.payment_method === 'transfer' ? 'bg-purple-100 text-purple-800' :
+                    order.payment_method === 'account' ? 'bg-orange-100 text-orange-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {PAYMENT_METHODS[order.payment_method]}
+                  </span>
                 </div>
+                
+                {/* Información de cuenta corriente */}
+                {order.payment_method === 'account' && (
+                  <div className="mt-4 pt-3 border-t border-gray-200 space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Estado:</span>
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
+                        order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
+                        order.payment_status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700">Monto Pagado:</span>
+                      <span className="font-semibold text-green-700">${(order.paid_amount || 0).toLocaleString('es-AR')}</span>
+                    </div>
+                    {order.balance > 0 && (
+                      <>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-700 font-medium">Saldo Pendiente:</span>
+                          <span className="font-bold text-red-600 text-lg">${order.balance.toLocaleString('es-AR')}</span>
+                        </div>
+                        
+                        {/* Botón para registrar pago */}
+                        <div className="pt-3 mt-3 border-t border-gray-200">
+                          <button
+                            onClick={() => setShowPaymentModal(true)}
+                            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-all print:hidden"
+                          >
+                            <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Registrar Pago
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -380,6 +478,91 @@ const OrderDetail = () => {
           </div>
         )}
       </div>
+      
+      {/* Modal para registrar pago */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 print:hidden">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900">Registrar Pago</h3>
+              <button
+                onClick={() => setShowPaymentModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddPayment}>
+              <div className="mb-4">
+                <p className="text-sm text-gray-600 mb-2">
+                  Orden: <span className="font-semibold text-gray-900">{order.order_number}</span>
+                </p>
+                <p className="text-sm text-gray-600 mb-4">
+                  Saldo pendiente: <span className="font-bold text-red-600 text-lg">${order.balance.toLocaleString('es-AR')}</span>
+                </p>
+                
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Monto a pagar
+                </label>
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-500 text-xl">$</span>
+                  <input
+                    type="number"
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="flex-1 input-field text-lg"
+                    min="0"
+                    step="0.01"
+                    max={order.balance}
+                    required
+                    autoFocus
+                  />
+                </div>
+                
+                {/* Botones de monto rápido */}
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentAmount((parseFloat(order.balance) / 2).toFixed(2))}
+                    className="flex-1 px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded"
+                  >
+                    50%
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentAmount(parseFloat(order.balance).toFixed(2))}
+                    className="flex-1 px-3 py-1 text-sm bg-blue-100 hover:bg-blue-200 text-blue-700 rounded font-semibold"
+                  >
+                    Saldo Total
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowPaymentModal(false)}
+                  className="flex-1 btn-secondary"
+                  disabled={processingPayment}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 btn-primary"
+                  disabled={processingPayment}
+                >
+                  {processingPayment ? 'Procesando...' : 'Confirmar Pago'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 };

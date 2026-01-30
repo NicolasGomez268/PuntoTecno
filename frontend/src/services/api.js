@@ -130,6 +130,13 @@ export const ordersService = {
     const response = await api.get('/orders/orders/my_orders/');
     return response.data;
   },
+
+  addPayment: async (id, amount) => {
+    const response = await api.post(`/orders/orders/${id}/add_payment/`, {
+      amount,
+    });
+    return response.data;
+  },
 };
 
 /**

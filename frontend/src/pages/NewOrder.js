@@ -23,6 +23,7 @@ const NewOrder = () => {
     estimated_cost: '',
     deposit_amount: '0',
     payment_method: 'not_paid',
+    paid_amount: '',
     general_observations: ''
   });
 
@@ -311,40 +312,34 @@ const NewOrder = () => {
                   <label htmlFor="estimated_cost" className="block text-sm font-medium text-gray-700 mb-2">
                     Costo Estimado
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-3.5 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      id="estimated_cost"
-                      name="estimated_cost"
-                      step="0.01"
-                      value={formData.estimated_cost}
-                      onChange={handleChange}
-                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="0.00"
-                      disabled={loading}
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    id="estimated_cost"
+                    name="estimated_cost"
+                    step="0.01"
+                    value={formData.estimated_cost}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="0.00"
+                    disabled={loading}
+                  />
                 </div>
 
                 <div>
                   <label htmlFor="deposit_amount" className="block text-sm font-medium text-gray-700 mb-2">
                     Adelanto / Seña
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-3.5 text-gray-500">$</span>
-                    <input
-                      type="number"
-                      id="deposit_amount"
-                      name="deposit_amount"
-                      step="0.01"
-                      value={formData.deposit_amount}
-                      onChange={handleChange}
-                      className="w-full pl-8 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="0.00"
-                      disabled={loading}
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    id="deposit_amount"
+                    name="deposit_amount"
+                    step="0.01"
+                    value={formData.deposit_amount}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                    placeholder="0.00"
+                    disabled={loading}
+                  />
                 </div>
               </div>
 
@@ -363,7 +358,33 @@ const NewOrder = () => {
                   <option value="not_paid">Sin Abonar</option>
                   <option value="cash">Efectivo</option>
                   <option value="transfer">Transferencia</option>
+                  <option value="account">Cuenta Corriente</option>
                 </select>
+                
+                {/* Campo para pago parcial cuando es cuenta corriente */}
+                {formData.payment_method === 'account' && (
+                  <div className="mt-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Monto a pagar ahora (opcional)
+                    </label>
+                    <input
+                      type="number"
+                      name="paid_amount"
+                      value={formData.paid_amount}
+                      onChange={handleChange}
+                      placeholder="0.00"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      min="0"
+                      step="0.01"
+                      disabled={loading}
+                    />
+                    {formData.estimated_cost && (
+                      <p className="text-sm text-gray-500 mt-2">
+                        Saldo pendiente: ${(parseFloat(formData.estimated_cost || 0) - (parseFloat(formData.paid_amount) || 0)).toLocaleString('es-AR')}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
