@@ -142,6 +142,32 @@ const OrderTicket = ({ order, duplicate = 'TÉCNICO' }) => {
             <span className="total-label">Forma de Pago:</span>
             <span className="total-value">{PAYMENT_METHODS[order.payment_method]}</span>
           </div>
+          
+          {/* Información de Cuenta Corriente */}
+          {order.payment_method === 'account' && (
+            <>
+              <div className="ticket-divider" style={{ margin: '10px 0' }}></div>
+              <div className="total-row" style={{ backgroundColor: '#f0f9ff', padding: '8px', borderRadius: '4px' }}>
+                <span className="total-label">Monto Pagado:</span>
+                <span className="total-value" style={{ color: '#059669', fontWeight: 'bold' }}>
+                  ${parseFloat(order.paid_amount || 0).toLocaleString('es-AR')}
+                </span>
+              </div>
+              {order.balance > 0 && (
+                <div className="total-row" style={{ backgroundColor: '#fef2f2', padding: '8px', borderRadius: '4px' }}>
+                  <span className="total-label">Saldo Pendiente:</span>
+                  <span className="total-value" style={{ color: '#dc2626', fontWeight: 'bold' }}>
+                    ${parseFloat(order.balance).toLocaleString('es-AR')}
+                  </span>
+                </div>
+              )}
+              {order.payment_status === 'paid' && (
+                <div className="total-row" style={{ backgroundColor: '#f0fdf4', padding: '8px', borderRadius: '4px' }}>
+                  <span className="total-label" style={{ color: '#16a34a', fontWeight: 'bold' }}>✓ PAGADO COMPLETO</span>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
