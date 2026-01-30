@@ -182,6 +182,13 @@ class RepairOrder(models.Model):
         ('cash', 'Efectivo'),
         ('transfer', 'Transferencia'),
         ('not_paid', 'Sin Abonar'),
+        ('account', 'Cuenta Corriente'),
+    )
+    
+    PAYMENT_STATUS_CHOICES = (
+        ('paid', 'Pagado'),
+        ('partial', 'Pago Parcial'),
+        ('pending', 'Pendiente'),
     )
     
     payment_method = models.CharField(
@@ -189,6 +196,27 @@ class RepairOrder(models.Model):
         choices=PAYMENT_METHOD_CHOICES,
         default='not_paid',
         verbose_name='Método de Pago'
+    )
+    
+    payment_status = models.CharField(
+        max_length=20,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='pending',
+        verbose_name='Estado de Pago'
+    )
+    
+    paid_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        verbose_name='Monto Pagado'
+    )
+    
+    balance = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+        verbose_name='Saldo Pendiente'
     )
     
     general_observations = models.TextField(
@@ -253,6 +281,25 @@ class RepairOrder(models.Model):
             else:
                 new_number = 1
             self.order_number = f"ORD-{new_number:06d}"
+        
+        # Calcular balance si es cuenta corriente
+        if self.payment_method == 'account' and self.estimated_cost:
+            self.balance = self.estimated_cost - self.paid_amount
+            
+            # Actualizar estado de pago
+            if self.balance <= 0:
+                self.payment_status = 'paid'
+                self.balance = 0
+            elif self.paid_amount > 0:
+                self.payment_status = 'partial'
+            else:
+                self.payment_status = 'pending'
+        else:
+            # Para otros métodos, si hay adelanto, considerar pagado ese monto
+            if self.deposit_amount > 0:
+                self.paid_amount = self.deposit_amount
+                if self.estimated_cost:
+                    self.balance = self.estimated_cost - self.paid_amount
         
         super().save(*args, **kwargs)
     

@@ -67,7 +67,8 @@ class RepairOrderSerializer(serializers.ModelSerializer):
             'device_color', 'device_serial', 'security_data', 'problem_description',
             'diagnosis', 'repair_notes', 'general_observations',
             'status', 'status_display', 'estimated_cost', 'final_cost',
-            'deposit_amount', 'remaining_balance', 'payment_method',
+            'deposit_amount', 'remaining_balance', 'payment_method', 'payment_status',
+            'paid_amount', 'balance',
             'assigned_to', 'assigned_to_name', 'created_by', 'created_by_name',
             'received_date', 'estimated_delivery', 'delivered_date', 'updated_at'
         ]
