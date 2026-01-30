@@ -191,39 +191,33 @@ const NewProduct = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Precio de Venta *
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 font-semibold text-lg">$</span>
-                    <input
-                      type="number"
-                      name="sale_price"
-                      value={formData.sale_price}
-                      onChange={handleChange}
-                      required
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      className="w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    name="sale_price"
+                    value={formData.sale_price}
+                    onChange={handleChange}
+                    required
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Costo de Compra
                   </label>
-                  <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-600 font-semibold text-lg">$</span>
-                    <input
-                      type="number"
-                      name="unit_price"
-                      value={formData.unit_price}
-                      onChange={handleChange}
-                      min="0"
-                      step="0.01"
-                      placeholder="0.00"
-                      className="w-full px-4 py-3 pl-10 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
-                    />
-                  </div>
+                  <input
+                    type="number"
+                    name="unit_price"
+                    value={formData.unit_price}
+                    onChange={handleChange}
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-medium"
+                  />
                 </div>
               </div>
             </div>
