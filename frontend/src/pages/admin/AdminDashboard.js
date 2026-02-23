@@ -264,6 +264,30 @@ const AdminDashboard = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                 </svg>
               </button>
+
+              <button
+                onClick={() => navigate('/categories')}
+                className="bg-gradient-to-br from-violet-500 to-violet-600 text-white p-5 rounded-lg shadow-md flex items-center justify-between group transition-all duration-300"
+                style={{ boxShadow: '0 4px 6px -1px rgba(139, 92, 246, 0.3), 0 2px 4px -1px rgba(139, 92, 246, 0.2)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-5px) scale(1.05)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 50%, #6d28d9 100%)';
+                  e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(139, 92, 246, 0.4), 0 10px 10px -5px rgba(139, 92, 246, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                  e.currentTarget.style.background = 'linear-gradient(to bottom right, #8b5cf6, #7c3aed)';
+                  e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(139, 92, 246, 0.3), 0 2px 4px -1px rgba(139, 92, 246, 0.2)';
+                }}
+              >
+                <div className="text-left">
+                  <p className="font-semibold text-lg">Categorías</p>
+                  <p className="text-sm text-violet-100 mt-1">Gestionar categorías</p>
+                </div>
+                <svg className="w-10 h-10 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>

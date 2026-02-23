@@ -234,6 +234,16 @@ export const inventoryService = {
     return response.data;
   },
 
+  updateCategory: async (id, data) => {
+    const response = await api.put(`/inventory/categories/${id}/`, data);
+    return response.data;
+  },
+
+  deleteCategory: async (id) => {
+    const response = await api.delete(`/inventory/categories/${id}/`);
+    return response.data;
+  },
+
   // Movimientos
   getMovements: async (params = {}) => {
     const response = await api.get('/inventory/movements/', { params });

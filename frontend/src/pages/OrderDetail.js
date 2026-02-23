@@ -470,11 +470,20 @@ const OrderDetail = () => {
               <p className="text-gray-600 mb-2">Este es el ticket que se imprimirá. Se generarán 2 copias: una para el técnico y otra para el cliente.</p>
             </div>
             
-            {/* Copia para Técnico */}
-            <OrderTicket order={order} duplicate="TÉCNICO" />
-            
-            {/* Copia para Cliente */}
-            <OrderTicket order={order} duplicate="CLIENTE" />
+            {/* Ambas copias en una sola hoja */}
+            <div className="ticket-two-copies">
+              {/* Copia para Técnico */}
+              <OrderTicket order={order} duplicate="TÉCNICO" />
+
+              {/* Línea de corte */}
+              <div className="ticket-cut-line">
+                <span className="ticket-cut-icon">✂</span>
+                <span className="ticket-cut-text">─ ─ ─ ─ ─ ─ ─ ─ ─ CORTAR AQUÍ ─ ─ ─ ─ ─ ─ ─ ─ ─</span>
+              </div>
+
+              {/* Copia para Cliente */}
+              <OrderTicket order={order} duplicate="CLIENTE" />
+            </div>
           </div>
         )}
       </div>

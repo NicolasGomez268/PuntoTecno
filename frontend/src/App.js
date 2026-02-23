@@ -19,6 +19,7 @@ import ProductDetail from './pages/ProductDetail';
 import SaleDetail from './pages/SaleDetail';
 import Sales from './pages/Sales';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import Categories from './pages/admin/Categories';
 import Reports from './pages/admin/Reports';
 import Users from './pages/admin/Users';
 import EmployeeDashboard from './pages/employee/EmployeeDashboard';
@@ -201,6 +202,15 @@ function App() {
               element={
                 <PrivateRoute adminOnly>
                   <Reports />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/categories"
+              element={
+                <PrivateRoute adminOnly>
+                  <Categories />
                 </PrivateRoute>
               }
             />

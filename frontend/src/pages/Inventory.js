@@ -11,6 +11,7 @@ import { inventoryService } from '../services/api';
 const Inventory = () => {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -19,7 +20,17 @@ const Inventory = () => {
 
   useEffect(() => {
     loadProducts();
+    loadCategoriesForFilter();
   }, [currentPage]);
+
+  const loadCategoriesForFilter = async () => {
+    try {
+      const data = await inventoryService.getCategories();
+      setCategories(Array.isArray(data) ? data : (data?.results || []));
+    } catch (error) {
+      console.error('Error al cargar categorías:', error);
+    }
+  };
 
   const loadProducts = async () => {
     try {
@@ -94,7 +105,7 @@ const Inventory = () => {
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.sku?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || product.category === parseInt(categoryFilter);
     return matchesSearch && matchesCategory;
   });
 
@@ -194,10 +205,9 @@ const Inventory = () => {
                 className="input-field"
               >
                 <option value="all">Todas las categorías</option>
-                <option value="parts">Repuestos</option>
-                <option value="accessories">Accesorios</option>
-                <option value="tools">Herramientas</option>
-                <option value="consumables">Consumibles</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
               </select>
             </div>
           </div>
