@@ -280,19 +280,118 @@ class RepairOrderViewSet(viewsets.ModelViewSet):
             'orders': serializer.data
         })
     
+    @action(detail=False, methods=['get'])
+    def caja(self, request):
+        """
+        Retorna datos de caja/ingresos para un período determinado.
+        GET /api/orders/orders/caja/?period=today|week|month
+        GET /api/orders/orders/caja/?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD
+        """
+        from datetime import date
+
+        period = request.query_params.get('period', 'month')
+        date_from_param = request.query_params.get('date_from')
+        date_to_param = request.query_params.get('date_to')
+
+        today = date.today()
+
+        if date_from_param and date_to_param:
+            try:
+                date_from = datetime.strptime(date_from_param, '%Y-%m-%d').date()
+                date_to = datetime.strptime(date_to_param, '%Y-%m-%d').date()
+            except ValueError:
+                return Response(
+                    {'error': 'Formato de fecha inválido. Use YYYY-MM-DD'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        elif period == 'today':
+            date_from = today
+            date_to = today
+        elif period == 'week':
+            date_from = today - timedelta(days=today.weekday())  # lunes de esta semana
+            date_to = today
+        else:  # month
+            date_from = today.replace(day=1)
+            date_to = today
+
+        # Órdenes entregadas en el período (usando delivered_date o received_date)
+        delivered_orders = RepairOrder.objects.filter(
+            status='delivered',
+            delivered_date__date__gte=date_from,
+            delivered_date__date__lte=date_to
+        ).select_related('customer')
+
+        # Si no tienen delivered_date se usan las recibidas en el período
+        delivered_fallback = RepairOrder.objects.filter(
+            status='delivered',
+            delivered_date__isnull=True,
+            received_date__date__gte=date_from,
+            received_date__date__lte=date_to
+        ).select_related('customer')
+
+        # Combinar ambos querysets
+        from itertools import chain
+        all_delivered = list(chain(delivered_orders, delivered_fallback))
+
+        # Calcular totales
+        total_income = sum(float(o.final_cost or o.estimated_cost or 0) for o in all_delivered)
+        total_parts_cost = sum(float(o.parts_cost or 0) for o in all_delivered)
+        total_labor_profit = sum(o.labor_profit() for o in all_delivered)
+
+        # Saldo pendiente total (todas las órdenes, sin importar período)
+        pending_balance_total = RepairOrder.objects.filter(
+            balance__gt=0
+        ).aggregate(total=Sum('balance'))['total'] or 0
+
+        # Órdenes con saldo pendiente
+        pending_orders_qs = RepairOrder.objects.filter(
+            balance__gt=0
+        ).select_related('customer').order_by('-received_date')
+
+        def order_to_dict(o):
+            customer = o.customer
+            return {
+                'id': o.id,
+                'order_number': o.order_number,
+                'customer_name': f"{customer.first_name} {customer.last_name}" if customer else "—",
+                'customer_phone': customer.phone if customer else "",
+                'device_type': o.get_device_type_display(),
+                'brand': o.device_brand,
+                'status': o.status,
+                'status_display': o.get_status_display(),
+                'final_cost': float(o.final_cost or o.estimated_cost or 0),
+                'parts_cost': float(o.parts_cost or 0),
+                'labor_profit': o.labor_profit(),
+                'paid_amount': float(o.paid_amount or 0),
+                'balance': float(o.balance or 0),
+                'payment_method': o.payment_method,
+                'payment_status': o.payment_status,
+                'received_date': o.received_date.strftime('%Y-%m-%d') if o.received_date else None,
+                'delivered_date': o.delivered_date.strftime('%Y-%m-%d') if o.delivered_date else None,
+            }
+
+        return Response({
+            'period': period if not (date_from_param and date_to_param) else 'custom',
+            'date_from': date_from.strftime('%Y-%m-%d'),
+            'date_to': date_to.strftime('%Y-%m-%d'),
+            'summary': {
+                'total_income': total_income,
+                'total_parts_cost': total_parts_cost,
+                'total_labor_profit': total_labor_profit,
+                'delivered_count': len(all_delivered),
+                'pending_balance_total': float(pending_balance_total),
+                'pending_orders_count': pending_orders_qs.count(),
+            },
+            'delivered_orders': [order_to_dict(o) for o in all_delivered],
+            'pending_orders': [order_to_dict(o) for o in pending_orders_qs],
+        })
+
     @action(detail=True, methods=['post'])
     def add_payment(self, request, pk=None):
         """
-        Registra un pago adicional sobre una orden en cuenta corriente
+        Registra un pago adicional sobre una orden con saldo pendiente
         """
         order = self.get_object()
-        
-        # Validar que sea cuenta corriente
-        if order.payment_method != 'account':
-            return Response(
-                {'error': 'Solo se pueden agregar pagos a órdenes en cuenta corriente'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         
         # Validar que tenga saldo pendiente
         if order.balance <= 0:

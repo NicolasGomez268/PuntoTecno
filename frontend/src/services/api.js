@@ -126,6 +126,11 @@ export const ordersService = {
     return response.data;
   },
 
+  getCaja: async (params = {}) => {
+    const response = await api.get('/orders/orders/caja/', { params });
+    return response.data;
+  },
+
   getMyOrders: async () => {
     const response = await api.get('/orders/orders/my_orders/');
     return response.data;
@@ -283,6 +288,11 @@ export const salesService = {
 
   getDashboard: async () => {
     const response = await api.get('/sales/sales/dashboard/');
+    return response.data;
+  },
+
+  getCaja: async (params = {}) => {
+    const response = await api.get('/sales/sales/caja/', { params });
     return response.data;
   },
 

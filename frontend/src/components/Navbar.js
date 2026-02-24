@@ -125,6 +125,17 @@ const Navbar = () => {
             >
               Clientes
             </Link>
+
+            {isAdmin() && (
+              <Link 
+                to="/caja" 
+                className={navLinkClass('/caja')}
+                onMouseEnter={(e) => !isActive('/caja') && handleNavHover(e, true)}
+                onMouseLeave={(e) => !isActive('/caja') && handleNavHover(e, false)}
+              >
+                💰 Caja
+              </Link>
+            )}
           </div>
 
           {/* Desktop User Menu & Logout */}
@@ -253,6 +264,21 @@ const Navbar = () => {
                 Clientes
               </div>
             </Link>
+
+            {isAdmin() && (
+              <Link 
+                to="/caja" 
+                className={`${navLinkClass('/caja')} block w-full text-left`}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                  </svg>
+                  Caja
+                </div>
+              </Link>
+            )}
 
             {/* Logout Button in Mobile */}
             <button

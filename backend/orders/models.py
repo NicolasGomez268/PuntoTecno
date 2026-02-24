@@ -178,6 +178,16 @@ class RepairOrder(models.Model):
         verbose_name='Adelanto/Seña'
     )
     
+    parts_cost = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        default=0,
+        verbose_name='Costo de Repuestos',
+        help_text='Costo de los repuestos/piezas utilizadas en la reparación'
+    )
+    
     PAYMENT_METHOD_CHOICES = (
         ('cash', 'Efectivo'),
         ('transfer', 'Transferencia'),
@@ -308,6 +318,56 @@ class RepairOrder(models.Model):
         if self.final_cost:
             return self.final_cost - self.deposit_amount
         return 0
+
+    def labor_profit(self):
+        """Calcula la ganancia de mano de obra (total - costo de repuestos)"""
+        total = self.final_cost or self.estimated_cost
+        if total and self.parts_cost:
+            return float(total) - float(self.parts_cost)
+        return float(total) if total else 0
+
+
+class OrderPart(models.Model):
+    """
+    Repuesto/producto utilizado en una orden de reparación.
+    Vincula la orden con el inventario y lleva registro de cantidad y precio.
+    """
+    order = models.ForeignKey(
+        'RepairOrder',
+        on_delete=models.CASCADE,
+        related_name='order_parts',
+        verbose_name='Orden'
+    )
+
+    product = models.ForeignKey(
+        'inventory.Product',
+        on_delete=models.PROTECT,
+        related_name='used_in_orders',
+        verbose_name='Producto'
+    )
+
+    quantity = models.PositiveIntegerField(
+        default=1,
+        verbose_name='Cantidad'
+    )
+
+    unit_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        verbose_name='Precio unitario'
+    )
+
+    class Meta:
+        verbose_name = 'Repuesto de orden'
+        verbose_name_plural = 'Repuestos de orden'
+        unique_together = ('order', 'product')
+
+    def __str__(self):
+        return f"{self.order.order_number} — {self.product.name} x{self.quantity}"
+
+    @property
+    def subtotal(self):
+        return self.unit_price * self.quantity
 
 
 class OrderStatusHistory(models.Model):

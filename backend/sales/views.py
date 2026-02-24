@@ -167,6 +167,118 @@ class SaleViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
+    def caja(self, request):
+        """
+        Retorna datos de caja de ventas para un período determinado.
+        GET /api/sales/sales/caja/?period=today|week|month
+        GET /api/sales/sales/caja/?date_from=YYYY-MM-DD&date_to=YYYY-MM-DD
+        """
+        from datetime import date, datetime
+
+        period = request.query_params.get('period', 'month')
+        date_from_param = request.query_params.get('date_from')
+        date_to_param = request.query_params.get('date_to')
+
+        today = date.today()
+
+        if date_from_param and date_to_param:
+            try:
+                date_from = datetime.strptime(date_from_param, '%Y-%m-%d').date()
+                date_to = datetime.strptime(date_to_param, '%Y-%m-%d').date()
+            except ValueError:
+                return Response(
+                    {'error': 'Formato de fecha inválido. Use YYYY-MM-DD'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        elif period == 'today':
+            date_from = today
+            date_to = today
+        elif period == 'week':
+            date_from = today - timedelta(days=today.weekday())
+            date_to = today
+        else:  # month
+            date_from = today.replace(day=1)
+            date_to = today
+
+        # Ventas del período
+        period_sales = Sale.objects.filter(
+            date__date__gte=date_from,
+            date__date__lte=date_to
+        ).prefetch_related('items__product').select_related('customer')
+
+        # Calcular totales del período
+        total_income = sum(float(s.total) for s in period_sales)
+        total_discount = sum(float(s.discount) for s in period_sales)
+
+        # Ganancia = precio de venta - costo producto para cada item
+        total_profit = 0
+        total_cost = 0
+        for sale in period_sales:
+            for item in sale.items.all():
+                cost = float(item.product.unit_price) * item.quantity
+                revenue = float(item.unit_price) * item.quantity
+                total_cost += cost
+                total_profit += (revenue - cost)
+
+        # Saldo pendiente total en ventas (cuenta corriente)
+        pending_sales_qs = Sale.objects.filter(
+            balance__gt=0
+        ).prefetch_related('items__product').select_related('customer').order_by('-date')
+
+        pending_balance_total = pending_sales_qs.aggregate(
+            total=Sum('balance')
+        )['total'] or 0
+
+        def sale_to_dict(s):
+            sale_profit = 0
+            sale_cost = 0
+            for item in s.items.all():
+                cost = float(item.product.unit_price) * item.quantity
+                revenue = float(item.unit_price) * item.quantity
+                sale_cost += cost
+                sale_profit += (revenue - cost)
+            customer_display = ''
+            if s.customer:
+                customer_display = f"{s.customer.first_name} {s.customer.last_name}"
+            elif s.customer_name:
+                customer_display = s.customer_name
+            else:
+                customer_display = 'Consumidor Final'
+            return {
+                'id': s.id,
+                'sale_number': s.sale_number,
+                'customer_name': customer_display,
+                'items_count': s.items.count(),
+                'subtotal': float(s.subtotal),
+                'discount': float(s.discount),
+                'total': float(s.total),
+                'cost': round(sale_cost, 2),
+                'profit': round(sale_profit, 2),
+                'paid_amount': float(s.paid_amount),
+                'balance': float(s.balance),
+                'payment_method': s.payment_method,
+                'payment_status': s.payment_status,
+                'date': s.date.strftime('%Y-%m-%d'),
+            }
+
+        return Response({
+            'period': period if not (date_from_param and date_to_param) else 'custom',
+            'date_from': date_from.strftime('%Y-%m-%d'),
+            'date_to': date_to.strftime('%Y-%m-%d'),
+            'summary': {
+                'total_income': round(total_income, 2),
+                'total_cost': round(total_cost, 2),
+                'total_profit': round(total_profit, 2),
+                'total_discount': round(total_discount, 2),
+                'sales_count': len(list(period_sales)),
+                'pending_balance_total': float(pending_balance_total),
+                'pending_sales_count': pending_sales_qs.count(),
+            },
+            'sales': [sale_to_dict(s) for s in period_sales],
+            'pending_sales': [sale_to_dict(s) for s in pending_sales_qs],
+        })
+
+    @action(detail=False, methods=['get'])
     def daily_report(self, request):
         """
         Reporte de ventas del día (cierre de caja)

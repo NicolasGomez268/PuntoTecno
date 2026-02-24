@@ -3,10 +3,16 @@ import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
 
 // Pages
+import AdminDashboard from './pages/admin/AdminDashboard';
+import Categories from './pages/admin/Categories';
+import Reports from './pages/admin/Reports';
+import Users from './pages/admin/Users';
+import Caja from './pages/Caja';
 import Customers from './pages/Customers';
 import EditCustomer from './pages/EditCustomer';
 import EditOrder from './pages/EditOrder';
 import EditProduct from './pages/EditProduct';
+import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 import Inventory from './pages/Inventory';
 import Login from './pages/Login';
 import NewCustomer from './pages/NewCustomer';
@@ -18,11 +24,6 @@ import Orders from './pages/Orders';
 import ProductDetail from './pages/ProductDetail';
 import SaleDetail from './pages/SaleDetail';
 import Sales from './pages/Sales';
-import AdminDashboard from './pages/admin/AdminDashboard';
-import Categories from './pages/admin/Categories';
-import Reports from './pages/admin/Reports';
-import Users from './pages/admin/Users';
-import EmployeeDashboard from './pages/employee/EmployeeDashboard';
 
 /**
  * Componente principal de la aplicación PuntoTecno
@@ -211,6 +212,15 @@ function App() {
               element={
                 <PrivateRoute adminOnly>
                   <Categories />
+                </PrivateRoute>
+              }
+            />
+
+            <Route
+              path="/caja"
+              element={
+                <PrivateRoute adminOnly>
+                  <Caja />
                 </PrivateRoute>
               }
             />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { customersService, ordersService } from '../services/api';
+import { customersService, inventoryService, ordersService } from '../services/api';
 
 const NewOrder = () => {
   const navigate = useNavigate();
@@ -9,6 +9,10 @@ const NewOrder = () => {
   const [error, setError] = useState('');
   const [customers, setCustomers] = useState([]);
   const [loadingCustomers, setLoadingCustomers] = useState(true);
+  const [products, setProducts] = useState([]);
+  const [selectedParts, setSelectedParts] = useState([]);
+  const [partSelector, setPartSelector] = useState({ productId: '', quantity: 1 });
+  const [partsModified, setPartsModified] = useState(false);
   
   const [formData, setFormData] = useState({
     customer: '',
@@ -21,6 +25,7 @@ const NewOrder = () => {
     problem_description: '',
     diagnosis: '',
     estimated_cost: '',
+    parts_cost: '0',
     deposit_amount: '0',
     payment_method: 'not_paid',
     paid_amount: '',
@@ -29,7 +34,15 @@ const NewOrder = () => {
 
   useEffect(() => {
     loadCustomers();
+    loadProducts();
   }, []);
+
+  // Recalcular parts_cost cuando el usuario agrega/quita repuestos
+  useEffect(() => {
+    if (!partsModified) return;
+    const total = selectedParts.reduce((sum, p) => sum + p.subtotal, 0);
+    setFormData(prev => ({ ...prev, parts_cost: total.toFixed(2) }));
+  }, [selectedParts, partsModified]);
 
   const loadCustomers = async () => {
     try {
@@ -42,6 +55,57 @@ const NewOrder = () => {
     } finally {
       setLoadingCustomers(false);
     }
+  };
+
+  const loadProducts = async () => {
+    try {
+      const data = await inventoryService.getProducts({ page_size: 200 });
+      const arr = data.results || data;
+      setProducts(Array.isArray(arr) ? arr.filter(p => p.is_active) : []);
+    } catch (err) {
+      console.error('Error al cargar productos:', err);
+    }
+  };
+
+  const handleAddPart = () => {
+    if (!partSelector.productId) return;
+    const product = products.find(p => p.id === parseInt(partSelector.productId));
+    if (!product) return;
+    const qty = parseInt(partSelector.quantity) || 1;
+    // Si ya está, sumar cantidad
+    const existing = selectedParts.find(p => p.id === product.id);
+    setPartsModified(true);
+    if (existing) {
+      setSelectedParts(prev => prev.map(p =>
+        p.id === product.id
+          ? { ...p, quantity: p.quantity + qty, subtotal: parseFloat(p.unit_price) * (p.quantity + qty) }
+          : p
+      ));
+    } else {
+      setSelectedParts(prev => [...prev, {
+        id: product.id,
+        name: product.name,
+        unit_price: parseFloat(product.unit_price),
+        quantity: qty,
+        subtotal: parseFloat(product.unit_price) * qty
+      }]);
+    }
+    setPartSelector({ productId: '', quantity: 1 });
+  };
+
+  const handleRemovePart = (productId) => {
+    setPartsModified(true);
+    setSelectedParts(prev => prev.filter(p => p.id !== productId));
+  };
+
+  const handlePartQuantityChange = (productId, newQty) => {
+    setPartsModified(true);
+    const qty = parseInt(newQty) || 1;
+    setSelectedParts(prev => prev.map(p =>
+      p.id === productId
+        ? { ...p, quantity: qty, subtotal: parseFloat(p.unit_price) * qty }
+        : p
+    ));
   };
 
   const handleChange = (e) => {
@@ -70,11 +134,17 @@ const NewOrder = () => {
           dataToSend.paid_amount = 0;
         }
       }
-      
+
+      // Incluir repuestos para que el backend descuente el stock
+      dataToSend.parts = selectedParts.map(p => ({
+        product_id: p.id,
+        quantity: p.quantity,
+      }));
+
       await ordersService.create(dataToSend);
       navigate('/orders');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Error al crear la orden');
+      setError(err.response?.data?.detail || err.response?.data?.[0] || 'Error al crear la orden');
       console.error('Error al crear orden:', err);
     } finally {
       setLoading(false);
@@ -323,7 +393,7 @@ const NewOrder = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="estimated_cost" className="block text-sm font-medium text-gray-700 mb-2">
-                    Costo Estimado
+                    Precio Total al Cliente
                   </label>
                   <input
                     type="number"
@@ -338,6 +408,119 @@ const NewOrder = () => {
                   />
                 </div>
 
+              </div>
+
+              {/* Selector de repuestos */}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-700 mb-3">Repuestos utilizados</h3>
+
+                {/* Agregar repuesto */}
+                <div className="flex gap-2 mb-3">
+                  <select
+                    value={partSelector.productId}
+                    onChange={e => setPartSelector(prev => ({ ...prev, productId: e.target.value }))}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                    disabled={loading}
+                  >
+                    <option value="">— Seleccionar repuesto —</option>
+                    {products.map(p => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} · ${parseFloat(p.unit_price).toLocaleString('es-AR')} · Stock: {p.quantity}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    min="1"
+                    value={partSelector.quantity}
+                    onChange={e => setPartSelector(prev => ({ ...prev, quantity: e.target.value }))}
+                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary"
+                    placeholder="Cant."
+                    disabled={loading}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddPart}
+                    disabled={!partSelector.productId || loading}
+                    className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 disabled:opacity-40 transition-colors"
+                  >
+                    + Agregar
+                  </button>
+                </div>
+
+                {/* Lista de repuestos seleccionados */}
+                {selectedParts.length > 0 && (
+                  <div className="border border-gray-100 rounded-lg overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="text-left px-3 py-2 text-gray-600 font-medium">Repuesto</th>
+                          <th className="text-center px-3 py-2 text-gray-600 font-medium">Cant.</th>
+                          <th className="text-right px-3 py-2 text-gray-600 font-medium">P. Unit.</th>
+                          <th className="text-right px-3 py-2 text-gray-600 font-medium">Subtotal</th>
+                          <th className="px-2 py-2"></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedParts.map(part => (
+                          <tr key={part.id} className="border-t border-gray-100">
+                            <td className="px-3 py-2 text-gray-800">{part.name}</td>
+                            <td className="px-3 py-2 text-center">
+                              <input
+                                type="number"
+                                min="1"
+                                value={part.quantity}
+                                onChange={e => handlePartQuantityChange(part.id, e.target.value)}
+                                className="w-16 px-2 py-1 border border-gray-200 rounded text-center text-sm"
+                                disabled={loading}
+                              />
+                            </td>
+                            <td className="px-3 py-2 text-right text-gray-600">${part.unit_price.toLocaleString('es-AR')}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-gray-800">${part.subtotal.toLocaleString('es-AR')}</td>
+                            <td className="px-2 py-2">
+                              <button type="button" onClick={() => handleRemovePart(part.id)} className="text-red-400 hover:text-red-600">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-gray-50 border-t border-gray-200">
+                        <tr>
+                          <td colSpan={3} className="px-3 py-2 text-sm font-semibold text-gray-700">Total repuestos</td>
+                          <td className="px-3 py-2 text-right font-bold text-gray-900">${parseFloat(formData.parts_cost).toLocaleString('es-AR')}</td>
+                          <td></td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+
+                {selectedParts.length === 0 && (
+                  <p className="text-sm text-gray-400 italic">Sin repuestos agregados</p>
+                )}
+              </div>
+
+              {/* Resumen de ganancia */}
+              {(formData.estimated_cost || formData.parts_cost) && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <p className="text-sm font-semibold text-green-800 mb-1">Desglose estimado:</p>
+                  <div className="flex justify-between text-sm text-green-700">
+                    <span>Precio total:</span>
+                    <span className="font-medium">${parseFloat(formData.estimated_cost || 0).toLocaleString('es-AR')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm text-green-700">
+                    <span>Costo repuestos:</span>
+                    <span className="font-medium">- ${parseFloat(formData.parts_cost || 0).toLocaleString('es-AR')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm font-bold text-green-800 border-t border-green-300 pt-1 mt-1">
+                    <span>Ganancia mano de obra:</span>
+                    <span>${(parseFloat(formData.estimated_cost || 0) - parseFloat(formData.parts_cost || 0)).toLocaleString('es-AR')}</span>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="deposit_amount" className="block text-sm font-medium text-gray-700 mb-2">
                     Adelanto / Seña

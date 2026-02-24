@@ -337,19 +337,31 @@ const OrderDetail = () => {
               <div className="space-y-3">
                 {order.estimated_cost && (
                   <div className="flex justify-between items-center pb-2 border-b">
-                    <span className="text-sm text-gray-600">Costo Estimado</span>
-                    <span className="font-semibold text-gray-900">${parseFloat(order.estimated_cost).toFixed(2)}</span>
+                    <span className="text-sm text-gray-600">Precio al Cliente</span>
+                    <span className="font-semibold text-gray-900">${parseFloat(order.estimated_cost).toLocaleString('es-AR')}</span>
                   </div>
                 )}
                 {order.final_cost && (
                   <div className="flex justify-between items-center pb-2 border-b">
                     <span className="text-sm text-gray-600">Costo Final</span>
-                    <span className="font-semibold text-gray-900">${parseFloat(order.final_cost).toFixed(2)}</span>
+                    <span className="font-semibold text-gray-900">${parseFloat(order.final_cost).toLocaleString('es-AR')}</span>
+                  </div>
+                )}
+                {(order.parts_cost > 0) && (
+                  <div className="flex justify-between items-center pb-2 border-b">
+                    <span className="text-sm text-gray-600">Costo Repuestos</span>
+                    <span className="font-semibold text-red-600">- ${parseFloat(order.parts_cost).toLocaleString('es-AR')}</span>
+                  </div>
+                )}
+                {(order.parts_cost > 0) && (
+                  <div className="flex justify-between items-center pb-2 border-b bg-green-50 -mx-2 px-2 rounded">
+                    <span className="text-sm font-semibold text-green-700">Ganancia Mano de Obra</span>
+                    <span className="font-bold text-green-700">${parseFloat(order.labor_profit || 0).toLocaleString('es-AR')}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center pb-2 border-b">
                   <span className="text-sm text-gray-600">Adelanto/Seña</span>
-                  <span className="font-semibold text-gray-900">${parseFloat(order.deposit_amount).toFixed(2)}</span>
+                  <span className="font-semibold text-gray-900">${parseFloat(order.deposit_amount).toLocaleString('es-AR')}</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b">
                   <span className="text-sm text-gray-600">Método de Pago</span>
@@ -363,44 +375,40 @@ const OrderDetail = () => {
                   </span>
                 </div>
                 
-                {/* Información de cuenta corriente */}
-                {order.payment_method === 'account' && (
-                  <div className="mt-4 pt-3 border-t border-gray-200 space-y-2">
+                {/* Saldo pendiente — visible para cualquier método de pago */}
+                {order.balance > 0 && (
+                  <div className="mt-2 pt-3 border-t border-gray-200 space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-700">Estado:</span>
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                        order.payment_status === 'paid' ? 'bg-green-100 text-green-800' :
-                        order.payment_status === 'partial' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-700">Monto Pagado:</span>
+                      <span className="text-gray-700">Pagado hasta ahora:</span>
                       <span className="font-semibold text-green-700">${(order.paid_amount || 0).toLocaleString('es-AR')}</span>
                     </div>
-                    {order.balance > 0 && (
-                      <>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-700 font-medium">Saldo Pendiente:</span>
-                          <span className="font-bold text-red-600 text-lg">${order.balance.toLocaleString('es-AR')}</span>
-                        </div>
-                        
-                        {/* Botón para registrar pago */}
-                        <div className="pt-3 mt-3 border-t border-gray-200">
-                          <button
-                            onClick={() => setShowPaymentModal(true)}
-                            className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-all print:hidden"
-                          >
-                            <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            Registrar Pago
-                          </button>
-                        </div>
-                      </>
-                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-700 font-medium">Saldo Pendiente:</span>
+                      <span className="font-bold text-red-600 text-lg">${parseFloat(order.balance).toLocaleString('es-AR')}</span>
+                    </div>
+                    <div className="pt-3 mt-1 border-t border-gray-200">
+                      <button
+                        onClick={() => setShowPaymentModal(true)}
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-4 rounded-lg shadow-md transition-all print:hidden"
+                      >
+                        <svg className="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Registrar Saldo Restante
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Orden totalmente pagada */}
+                {order.balance <= 0 && order.payment_method !== 'not_paid' && (
+                  <div className="mt-2 pt-3 border-t border-gray-200">
+                    <div className="flex items-center gap-2 text-green-700 font-semibold">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Pagado completo
+                    </div>
                   </div>
                 )}
               </div>
