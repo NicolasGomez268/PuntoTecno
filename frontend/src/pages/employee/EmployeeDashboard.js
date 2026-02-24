@@ -46,21 +46,16 @@ const EmployeeDashboard = () => {
       setLoading(true);
       // Cargar todas las órdenes
       const orders = await ordersService.getAll({ ordering: '-received_date' });
-      const ordersArray = orders.results || orders;
-      
-      // Filtrar órdenes asignadas al usuario actual
-      const myAssignedOrders = Array.isArray(ordersArray) 
-        ? ordersArray.filter(order => order.assigned_to === user.id)
-        : [];
+      const ordersArray = Array.isArray(orders.results || orders) ? (orders.results || orders) : [];
 
-      setMyOrders(myAssignedOrders);
+      setMyOrders(ordersArray);
 
-      // Calcular estadísticas personales
+      // Estadísticas globales (todas las órdenes)
       const myStats = {
-        total: myAssignedOrders.length,
-        in_service: myAssignedOrders.filter(o => o.status === 'in_service').length,
-        ready: myAssignedOrders.filter(o => o.status === 'ready').length,
-        completed: myAssignedOrders.filter(o => o.status === 'delivered').length
+        total: ordersArray.length,
+        in_service: ordersArray.filter(o => o.status === 'in_service').length,
+        ready: ordersArray.filter(o => o.status === 'ready').length,
+        completed: ordersArray.filter(o => o.status === 'delivered').length
       };
 
       setDashboardData(myStats);
@@ -91,7 +86,7 @@ const EmployeeDashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">
             Bienvenido, {user?.first_name || user?.username}
           </h1>
-          <p className="text-gray-600 mt-2">Estas son tus órdenes asignadas</p>
+          <p className="text-gray-600 mt-2">Resumen general de órdenes</p>
         </div>
 
         {/* Estadísticas personales */}
@@ -99,7 +94,7 @@ const EmployeeDashboard = () => {
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
-                <p className="text-blue-100 text-sm font-medium mb-2">Mis Órdenes</p>
+                <p className="text-blue-100 text-sm font-medium mb-2">Total Órdenes</p>
                 <p className="text-3xl font-bold">{dashboardData?.total || 0}</p>
               </div>
               <div className="bg-white bg-opacity-20 rounded-lg p-3 flex-shrink-0 ml-3">
@@ -156,7 +151,7 @@ const EmployeeDashboard = () => {
         {/* Mis órdenes asignadas */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-gray-800">Mis Órdenes Asignadas</h2>
+            <h2 className="text-xl font-semibold text-gray-800">Órdenes Recientes</h2>
             <button 
               onClick={() => navigate('/orders')} 
               className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center"
@@ -173,7 +168,7 @@ const EmployeeDashboard = () => {
               <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
               </svg>
-              <p className="text-gray-500 text-lg">No tienes órdenes asignadas</p>
+              <p className="text-gray-500 text-lg">No hay órdenes registradas</p>
               <button 
                 onClick={() => navigate('/orders')}
                 className="btn-primary inline-block mt-4"
