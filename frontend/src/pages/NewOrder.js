@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { customersService, inventoryService, ordersService } from '../services/api';
@@ -13,6 +13,11 @@ const NewOrder = () => {
   const [selectedParts, setSelectedParts] = useState([]);
   const [partSelector, setPartSelector] = useState({ productId: '', quantity: 1 });
   const [partsModified, setPartsModified] = useState(false);
+  const [partSearch, setPartSearch] = useState('');
+  const [partDropdownOpen, setPartDropdownOpen] = useState(false);
+  const partSearchRef = useRef(null);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
   
   const [formData, setFormData] = useState({
     customer: '',
@@ -91,6 +96,8 @@ const NewOrder = () => {
       }]);
     }
     setPartSelector({ productId: '', quantity: 1 });
+    setPartSearch('');
+    setPartDropdownOpen(false);
   };
 
   const handleRemovePart = (productId) => {
@@ -195,22 +202,59 @@ const NewOrder = () => {
                   <div className="text-sm text-gray-500">Cargando clientes...</div>
                 ) : (
                   <div className="flex gap-2">
-                    <select
-                      id="customer"
-                      name="customer"
-                      required
-                      value={formData.customer}
-                      onChange={handleChange}
-                      className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                      disabled={loading}
-                    >
-                      <option value="">Seleccionar cliente</option>
-                      {customers.map(customer => (
-                        <option key={customer.id} value={customer.id}>
-                          {customer.first_name} {customer.last_name} - {customer.dni}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        value={customerSearch}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setCustomerSearch(val);
+                          setCustomerDropdownOpen(val.length >= 2);
+                          if (!val) {
+                            setCustomerSearch('');
+                            setFormData(prev => ({ ...prev, customer: '' }));
+                          }
+                        }}
+                        onFocus={() => { if (customerSearch.length >= 2) setCustomerDropdownOpen(true); }}
+                        onBlur={() => setTimeout(() => setCustomerDropdownOpen(false), 150)}
+                        placeholder="Buscar por nombre o DNI..."
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                        disabled={loading}
+                        autoComplete="off"
+                      />
+                      {/* Campo oculto para validación required */}
+                      <input type="hidden" name="customer" value={formData.customer} required />
+                      {customerDropdownOpen && (() => {
+                        const q = customerSearch.toLowerCase();
+                        const filtered = customers.filter(c =>
+                          `${c.first_name} ${c.last_name}`.toLowerCase().includes(q) ||
+                          c.dni.includes(q)
+                        );
+                        return filtered.length > 0 ? (
+                          <ul className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto mt-1">
+                            {filtered.map(c => (
+                              <li
+                                key={c.id}
+                                onMouseDown={() => {
+                                  setFormData(prev => ({ ...prev, customer: String(c.id) }));
+                                  setCustomerSearch(`${c.first_name} ${c.last_name} - ${c.dni}`);
+                                  setCustomerDropdownOpen(false);
+                                }}
+                                className="px-4 py-2 text-sm cursor-pointer hover:bg-primary hover:text-white transition-colors"
+                              >
+                                <span className="font-medium">{c.first_name} {c.last_name}</span>
+                                <span className="ml-2 text-xs opacity-75">DNI: {c.dni}</span>
+                                {c.phone && <span className="ml-2 text-xs opacity-75">· {c.phone}</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <div className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 px-4 py-2 text-sm text-gray-500">
+                            Sin resultados
+                          </div>
+                        );
+                      })()}
+                    </div>
                     <button
                       type="button"
                       onClick={() => window.open('/customers/new', '_blank')}
@@ -416,19 +460,51 @@ const NewOrder = () => {
 
                 {/* Agregar repuesto */}
                 <div className="flex gap-2 mb-3">
-                  <select
-                    value={partSelector.productId}
-                    onChange={e => setPartSelector(prev => ({ ...prev, productId: e.target.value }))}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
-                    disabled={loading}
-                  >
-                    <option value="">— Seleccionar repuesto —</option>
-                    {products.map(p => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} · ${parseFloat(p.unit_price).toLocaleString('es-AR')} · Stock: {p.quantity}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="flex-1 relative" ref={partSearchRef}>
+                    <input
+                      type="text"
+                      value={partSearch}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setPartSearch(val);
+                        setPartDropdownOpen(val.length >= 2);
+                        if (!val) setPartSelector(prev => ({ ...prev, productId: '' }));
+                      }}
+                      onFocus={() => { if (partSearch.length >= 2) setPartDropdownOpen(true); }}
+                      onBlur={() => setTimeout(() => setPartDropdownOpen(false), 150)}
+                      placeholder="Buscar repuesto..."
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                      disabled={loading}
+                      autoComplete="off"
+                    />
+                    {partDropdownOpen && (() => {
+                      const filtered = products.filter(p =>
+                        p.name.toLowerCase().includes(partSearch.toLowerCase())
+                      );
+                      return filtered.length > 0 ? (
+                        <ul className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg max-h-52 overflow-y-auto mt-1">
+                          {filtered.map(p => (
+                            <li
+                              key={p.id}
+                              onMouseDown={() => {
+                                setPartSelector(prev => ({ ...prev, productId: String(p.id) }));
+                                setPartSearch(`${p.name} · $${parseFloat(p.unit_price).toLocaleString('es-AR')} · Stock: ${p.quantity}`);
+                                setPartDropdownOpen(false);
+                              }}
+                              className="px-3 py-2 text-sm cursor-pointer hover:bg-primary hover:text-white transition-colors"
+                            >
+                              <span className="font-medium">{p.name}</span>
+                              <span className="ml-2 text-xs opacity-75">${parseFloat(p.unit_price).toLocaleString('es-AR')} · Stock: {p.quantity}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 px-3 py-2 text-sm text-gray-500">
+                          Sin resultados
+                        </div>
+                      );
+                    })()}
+                  </div>
                   <input
                     type="number"
                     min="1"
