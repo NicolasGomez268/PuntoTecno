@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { inventoryService } from '../services/api';
+import { formatPrice } from '../utils/format';
 
 /**
  * Vista detallada de un producto con movimientos de stock
@@ -226,7 +227,7 @@ const ProductDetail = () => {
                 <div>
                   <p className="text-sm text-gray-600">Precio de Venta</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    ${product?.sale_price?.toLocaleString('es-AR')}
+                    ${formatPrice(product?.sale_price ?? 0)}
                   </p>
                 </div>
                 {product?.unit_price > 0 && (
@@ -234,13 +235,13 @@ const ProductDetail = () => {
                     <div>
                       <p className="text-sm text-gray-600">Costo</p>
                       <p className="text-lg font-medium text-gray-900">
-                        ${product?.unit_price?.toLocaleString('es-AR')}
+                        ${formatPrice(product?.unit_price ?? 0)}
                       </p>
                     </div>
                     <div className="pt-3 border-t border-gray-200">
                       <p className="text-sm text-gray-600">Margen</p>
                       <p className="text-lg font-medium text-green-600">
-                        ${(product.sale_price - product.unit_price).toLocaleString('es-AR')}
+                        ${formatPrice(product.sale_price - product.unit_price)}
                         <span className="text-sm ml-2">
                           ({(((product.sale_price - product.unit_price) / product.unit_price) * 100).toFixed(1)}%)
                         </span>
@@ -255,7 +256,7 @@ const ProductDetail = () => {
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 text-white">
               <p className="text-blue-100 text-sm font-medium">Valor Total en Stock</p>
               <p className="text-3xl font-bold mt-2">
-                ${((product?.price || 0) * (product?.quantity || 0)).toLocaleString('es-AR')}
+                ${formatPrice((product?.price || 0) * (product?.quantity || 0))}
               </p>
             </div>
           </div>

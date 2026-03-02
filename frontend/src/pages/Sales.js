@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Pagination from '../components/Pagination';
 import { salesService } from '../services/api';
+import { formatPrice } from '../utils/format';
 
 /**
  * Página de listado de ventas
@@ -111,7 +112,7 @@ const Sales = () => {
                   <p className="text-blue-100 text-sm font-medium mb-2">Ventas Hoy</p>
                   <p className="text-3xl font-bold mb-1">{stats.sales_today.count}</p>
                   <p className="text-blue-100 text-base font-medium">
-                    ${stats.sales_today.total.toLocaleString('es-AR')}
+                    ${formatPrice(stats.sales_today.total)}
                   </p>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-full p-3 flex-shrink-0 ml-3">
@@ -128,7 +129,7 @@ const Sales = () => {
                   <p className="text-cyan-100 text-sm font-medium mb-2">Ventas del Mes</p>
                   <p className="text-3xl font-bold mb-1">{stats.sales_month.count}</p>
                   <p className="text-cyan-100 text-base font-medium">
-                    ${stats.sales_month.total.toLocaleString('es-AR')}
+                    ${formatPrice(stats.sales_month.total)}
                   </p>
                 </div>
                 <div className="bg-white bg-opacity-20 rounded-full p-3 flex-shrink-0 ml-3">
@@ -145,7 +146,7 @@ const Sales = () => {
                   <p className="text-gray-600 text-sm font-medium mb-2">Promedio</p>
                   <p className="text-3xl font-bold text-primary mb-1">
                     ${stats.sales_today.count > 0 
-                      ? (stats.sales_today.total / stats.sales_today.count).toFixed(0).toLocaleString('es-AR')
+                      ? formatPrice(stats.sales_today.total / stats.sales_today.count)
                       : '0'
                     }
                   </p>
@@ -265,7 +266,7 @@ const Sales = () => {
                       </td>
                       <td className="p-4">
                         <span className="font-medium text-gray-900">
-                          ${sale.total.toLocaleString('es-AR')}
+                          ${formatPrice(sale.total)}
                         </span>
                       </td>
                       <td className="p-4">

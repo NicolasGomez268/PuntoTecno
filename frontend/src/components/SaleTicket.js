@@ -1,3 +1,4 @@
+import { formatPrice } from '../utils/format';
 
 const SaleTicket = ({ sale }) => {
   const PAYMENT_METHODS = {
@@ -19,10 +20,10 @@ const SaleTicket = ({ sale }) => {
       {/* Header con Logo y Contacto */}
       <div className="ticket-header">
         <div className="business-info">
-          <h1 className="business-name">PUNTOTECNO</h1>
-          <p className="business-contact">Tel: 3794-123456 / 3794-654321</p>
-          <p className="business-contact">Email: contacto@puntotecno.com</p>
-          <p className="business-address">Dirección: Av. Principal 123, Corrientes</p>
+          <h1 className="business-name">PuntoTecno</h1>
+          <p className="business-contact">Cel: 385 4845623 | 3841 408596</p>
+          <p className="business-contact">B°Centro</p>
+          <p className="business-address">puntotecno002@gmail.com</p>
         </div>
       </div>
 
@@ -63,25 +64,25 @@ const SaleTicket = ({ sale }) => {
       {/* Productos */}
       <div className="ticket-section">
         <h3 className="section-subtitle">PRODUCTOS</h3>
-        <table style={{ width: '100%', fontSize: '10px', marginTop: '5px' }}>
+        <table style={{ width: '100%', fontSize: '15px', marginTop: '8px' }}>
           <thead>
-            <tr style={{ borderBottom: '1px solid #000' }}>
-              <th style={{ textAlign: 'left', padding: '3px 0' }}>Producto</th>
-              <th style={{ textAlign: 'center', padding: '3px 5px' }}>Cant.</th>
-              <th style={{ textAlign: 'right', padding: '3px 0' }}>Precio</th>
-              <th style={{ textAlign: 'right', padding: '3px 0' }}>Subtotal</th>
+            <tr style={{ borderBottom: '2px solid #000' }}>
+              <th style={{ textAlign: 'left', padding: '6px 0' }}>Producto</th>
+              <th style={{ textAlign: 'center', padding: '6px 8px' }}>Cant.</th>
+              <th style={{ textAlign: 'right', padding: '6px 0' }}>Precio</th>
+              <th style={{ textAlign: 'right', padding: '6px 0' }}>Subtotal</th>
             </tr>
           </thead>
           <tbody>
             {sale.items.map((item, index) => (
               <tr key={index} style={{ borderBottom: '1px dashed #ccc' }}>
-                <td style={{ padding: '3px 0' }}>
+                <td style={{ padding: '6px 0' }}>
                   <div style={{ fontWeight: 'bold' }}>{item.product_name}</div>
-                  <div style={{ fontSize: '8px', color: '#666' }}>SKU: {item.product_sku}</div>
+                  <div style={{ fontSize: '12px', color: '#000' }}>SKU: {item.product_sku}</div>
                 </td>
-                <td style={{ textAlign: 'center', padding: '3px 5px' }}>{item.quantity}</td>
-                <td style={{ textAlign: 'right', padding: '3px 0' }}>${parseFloat(item.unit_price).toFixed(2)}</td>
-                <td style={{ textAlign: 'right', padding: '3px 0' }}>${parseFloat(item.subtotal).toFixed(2)}</td>
+                <td style={{ textAlign: 'center', padding: '6px 8px' }}>{item.quantity}</td>
+                <td style={{ textAlign: 'right', padding: '6px 0' }}>${formatPrice(item.unit_price)}</td>
+                <td style={{ textAlign: 'right', padding: '6px 0' }}>${formatPrice(item.subtotal)}</td>
               </tr>
             ))}
           </tbody>
@@ -95,17 +96,17 @@ const SaleTicket = ({ sale }) => {
         <div className="totals-section">
           <div className="total-row">
             <span className="total-label">Subtotal:</span>
-            <span className="total-value">${parseFloat(sale.subtotal).toFixed(2)}</span>
+            <span className="total-value">${formatPrice(sale.subtotal)}</span>
           </div>
           {sale.discount > 0 && (
             <div className="total-row">
               <span className="total-label">Descuento:</span>
-              <span className="total-value">-${parseFloat(sale.discount).toFixed(2)}</span>
+              <span className="total-value">-${formatPrice(sale.discount)}</span>
             </div>
           )}
           <div className="total-row total-row-main">
             <span className="total-label">TOTAL:</span>
-            <span className="total-value">${parseFloat(sale.total).toFixed(2)}</span>
+            <span className="total-value">${formatPrice(sale.total)}</span>
           </div>
         </div>
       </div>
@@ -128,12 +129,12 @@ const SaleTicket = ({ sale }) => {
             </div>
             <div className="info-row">
               <span className="info-label">Monto Pagado:</span>
-              <span className="info-value">${parseFloat(sale.paid_amount || 0).toFixed(2)}</span>
+              <span className="info-value">${formatPrice(sale.paid_amount || 0)}</span>
             </div>
             {sale.balance > 0 && (
               <div className="info-row" style={{ fontWeight: 'bold', marginTop: '3px' }}>
                 <span className="info-label">Saldo Pendiente:</span>
-                <span className="info-value">${parseFloat(sale.balance).toFixed(2)}</span>
+                <span className="info-value">${formatPrice(sale.balance)}</span>
               </div>
             )}
           </>
@@ -167,7 +168,7 @@ const SaleTicket = ({ sale }) => {
       <div className="ticket-divider"></div>
 
       {/* Mensaje de agradecimiento */}
-      <div style={{ textAlign: 'center', fontSize: '9px', marginTop: '10px' }}>
+      <div style={{ textAlign: 'center', fontSize: '14px', marginTop: '12px' }}>
         <p style={{ fontWeight: 'bold' }}>¡GRACIAS POR SU COMPRA!</p>
         <p>Conserve este ticket para cambios y devoluciones</p>
       </div>

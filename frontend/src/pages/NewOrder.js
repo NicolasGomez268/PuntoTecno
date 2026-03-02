@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { customersService, inventoryService, ordersService } from '../services/api';
+import { formatPrice } from '../utils/format';
 
 const NewOrder = () => {
   const navigate = useNavigate();
@@ -488,13 +489,13 @@ const NewOrder = () => {
                               key={p.id}
                               onMouseDown={() => {
                                 setPartSelector(prev => ({ ...prev, productId: String(p.id) }));
-                                setPartSearch(`${p.name} · $${parseFloat(p.unit_price).toLocaleString('es-AR')} · Stock: ${p.quantity}`);
+                                setPartSearch(`${p.name} · $${formatPrice(p.unit_price)} · Stock: ${p.quantity}`);
                                 setPartDropdownOpen(false);
                               }}
                               className="px-3 py-2 text-sm cursor-pointer hover:bg-primary hover:text-white transition-colors"
                             >
                               <span className="font-medium">{p.name}</span>
-                              <span className="ml-2 text-xs opacity-75">${parseFloat(p.unit_price).toLocaleString('es-AR')} · Stock: {p.quantity}</span>
+                              <span className="ml-2 text-xs opacity-75">${formatPrice(p.unit_price)} · Stock: {p.quantity}</span>
                             </li>
                           ))}
                         </ul>
@@ -551,8 +552,8 @@ const NewOrder = () => {
                                 disabled={loading}
                               />
                             </td>
-                            <td className="px-3 py-2 text-right text-gray-600">${part.unit_price.toLocaleString('es-AR')}</td>
-                            <td className="px-3 py-2 text-right font-semibold text-gray-800">${part.subtotal.toLocaleString('es-AR')}</td>
+                            <td className="px-3 py-2 text-right text-gray-600">${formatPrice(part.unit_price)}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-gray-800">${formatPrice(part.subtotal)}</td>
                             <td className="px-2 py-2">
                               <button type="button" onClick={() => handleRemovePart(part.id)} className="text-red-400 hover:text-red-600">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -564,7 +565,7 @@ const NewOrder = () => {
                       <tfoot className="bg-gray-50 border-t border-gray-200">
                         <tr>
                           <td colSpan={3} className="px-3 py-2 text-sm font-semibold text-gray-700">Total repuestos</td>
-                          <td className="px-3 py-2 text-right font-bold text-gray-900">${parseFloat(formData.parts_cost).toLocaleString('es-AR')}</td>
+                          <td className="px-3 py-2 text-right font-bold text-gray-900">${formatPrice(formData.parts_cost)}</td>
                           <td></td>
                         </tr>
                       </tfoot>
@@ -583,15 +584,15 @@ const NewOrder = () => {
                   <p className="text-sm font-semibold text-green-800 mb-1">Desglose estimado:</p>
                   <div className="flex justify-between text-sm text-green-700">
                     <span>Precio total:</span>
-                    <span className="font-medium">${parseFloat(formData.estimated_cost || 0).toLocaleString('es-AR')}</span>
+                    <span className="font-medium">${formatPrice(formData.estimated_cost || 0)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-green-700">
                     <span>Costo repuestos:</span>
-                    <span className="font-medium">- ${parseFloat(formData.parts_cost || 0).toLocaleString('es-AR')}</span>
+                    <span className="font-medium">- ${formatPrice(formData.parts_cost || 0)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold text-green-800 border-t border-green-300 pt-1 mt-1">
                     <span>Ganancia mano de obra:</span>
-                    <span>${(parseFloat(formData.estimated_cost || 0) - parseFloat(formData.parts_cost || 0)).toLocaleString('es-AR')}</span>
+                    <span>${formatPrice(parseFloat(formData.estimated_cost || 0) - parseFloat(formData.parts_cost || 0))}</span>
                   </div>
                 </div>
               )}
@@ -652,7 +653,7 @@ const NewOrder = () => {
                     />
                     {formData.estimated_cost && (
                       <p className="text-sm text-gray-500 mt-2">
-                        Saldo pendiente: ${(parseFloat(formData.estimated_cost || 0) - (parseFloat(formData.paid_amount) || 0)).toLocaleString('es-AR')}
+                        Saldo pendiente: ${formatPrice(parseFloat(formData.estimated_cost || 0) - (parseFloat(formData.paid_amount) || 0))}
                       </p>
                     )}
                   </div>

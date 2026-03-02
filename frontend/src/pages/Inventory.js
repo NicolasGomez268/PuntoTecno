@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Pagination from '../components/Pagination';
 import { inventoryService } from '../services/api';
+import { formatPrice } from '../utils/format';
 
 /**
  * Página principal de Inventario
@@ -179,7 +180,7 @@ const Inventory = () => {
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <p className="text-sm text-gray-600 mb-1">Valor Total</p>
             <p className="text-3xl font-bold text-blue-600">
-              ${products.reduce((sum, p) => sum + ((p.sale_price || 0) * (p.quantity || 0)), 0).toLocaleString('es-AR')}
+              ${formatPrice(products.reduce((sum, p) => sum + ((p.sale_price || 0) * (p.quantity || 0)), 0))}
             </p>
           </div>
         </div>
@@ -271,7 +272,7 @@ const Inventory = () => {
                       </td>
                       <td className="p-4">
                         <span className="font-medium text-gray-900">
-                          ${product.sale_price?.toLocaleString('es-AR')}
+                          ${formatPrice(product.sale_price ?? 0)}
                         </span>
                       </td>
                       <td className="p-4">

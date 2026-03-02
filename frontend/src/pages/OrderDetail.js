@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import OrderTicket from '../components/OrderTicket';
 import { ordersService } from '../services/api';
+import { formatPrice } from '../utils/format';
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -103,7 +104,7 @@ const OrderDetail = () => {
     }
     
     if (amount > order.balance) {
-      alert(`El monto no puede ser mayor al saldo pendiente ($${order.balance.toLocaleString('es-AR')})`);
+      alert(`El monto no puede ser mayor al saldo pendiente ($${formatPrice(order.balance)})`);
       return;
     }
     
@@ -338,30 +339,30 @@ const OrderDetail = () => {
                 {order.estimated_cost && (
                   <div className="flex justify-between items-center pb-2 border-b">
                     <span className="text-sm text-gray-600">Precio al Cliente</span>
-                    <span className="font-semibold text-gray-900">${parseFloat(order.estimated_cost).toLocaleString('es-AR')}</span>
+                    <span className="font-semibold text-gray-900">${formatPrice(order.estimated_cost)}</span>
                   </div>
                 )}
                 {order.final_cost && (
                   <div className="flex justify-between items-center pb-2 border-b">
                     <span className="text-sm text-gray-600">Costo Final</span>
-                    <span className="font-semibold text-gray-900">${parseFloat(order.final_cost).toLocaleString('es-AR')}</span>
+                    <span className="font-semibold text-gray-900">${formatPrice(order.final_cost)}</span>
                   </div>
                 )}
                 {(order.parts_cost > 0) && (
                   <div className="flex justify-between items-center pb-2 border-b">
                     <span className="text-sm text-gray-600">Costo Repuestos</span>
-                    <span className="font-semibold text-red-600">- ${parseFloat(order.parts_cost).toLocaleString('es-AR')}</span>
+                    <span className="font-semibold text-red-600">- ${formatPrice(order.parts_cost)}</span>
                   </div>
                 )}
                 {(order.parts_cost > 0) && (
                   <div className="flex justify-between items-center pb-2 border-b bg-green-50 -mx-2 px-2 rounded">
                     <span className="text-sm font-semibold text-green-700">Ganancia Mano de Obra</span>
-                    <span className="font-bold text-green-700">${parseFloat(order.labor_profit || 0).toLocaleString('es-AR')}</span>
+                    <span className="font-bold text-green-700">${formatPrice(order.labor_profit || 0)}</span>
                   </div>
                 )}
                 <div className="flex justify-between items-center pb-2 border-b">
                   <span className="text-sm text-gray-600">Adelanto/Seña</span>
-                  <span className="font-semibold text-gray-900">${parseFloat(order.deposit_amount).toLocaleString('es-AR')}</span>
+                  <span className="font-semibold text-gray-900">${formatPrice(order.deposit_amount)}</span>
                 </div>
                 <div className="flex justify-between items-center pb-2 border-b">
                   <span className="text-sm text-gray-600">Método de Pago</span>
@@ -380,11 +381,11 @@ const OrderDetail = () => {
                   <div className="mt-2 pt-3 border-t border-gray-200 space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-700">Pagado hasta ahora:</span>
-                      <span className="font-semibold text-green-700">${(order.paid_amount || 0).toLocaleString('es-AR')}</span>
+                      <span className="font-semibold text-green-700">${formatPrice(order.paid_amount || 0)}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-700 font-medium">Saldo Pendiente:</span>
-                      <span className="font-bold text-red-600 text-lg">${parseFloat(order.balance).toLocaleString('es-AR')}</span>
+                      <span className="font-bold text-red-600 text-lg">${formatPrice(order.balance)}</span>
                     </div>
                     <div className="pt-3 mt-1 border-t border-gray-200">
                       <button
@@ -483,12 +484,6 @@ const OrderDetail = () => {
               {/* Copia para Técnico */}
               <OrderTicket order={order} duplicate="TÉCNICO" />
 
-              {/* Línea de corte */}
-              <div className="ticket-cut-line">
-                <span className="ticket-cut-icon">✂</span>
-                <span className="ticket-cut-text">─ ─ ─ ─ ─ ─ ─ ─ ─ CORTAR AQUÍ ─ ─ ─ ─ ─ ─ ─ ─ ─</span>
-              </div>
-
               {/* Copia para Cliente */}
               <OrderTicket order={order} duplicate="CLIENTE" />
             </div>
@@ -518,7 +513,7 @@ const OrderDetail = () => {
                   Orden: <span className="font-semibold text-gray-900">{order.order_number}</span>
                 </p>
                 <p className="text-sm text-gray-600 mb-4">
-                  Saldo pendiente: <span className="font-bold text-red-600 text-lg">${order.balance.toLocaleString('es-AR')}</span>
+                  Saldo pendiente: <span className="font-bold text-red-600 text-lg">${formatPrice(order.balance)}</span>
                 </p>
                 
                 <label className="block text-sm font-medium text-gray-700 mb-2">

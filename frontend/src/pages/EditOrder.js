@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { customersService, inventoryService, ordersService } from '../services/api';
+import { formatPrice } from '../utils/format';
 
 const EditOrder = () => {
   const { id } = useParams();
@@ -554,7 +555,7 @@ const EditOrder = () => {
                     <option value="">— Seleccionar repuesto —</option>
                     {products.map(p => (
                       <option key={p.id} value={p.id}>
-                        {p.name} · ${parseFloat(p.unit_price).toLocaleString('es-AR')} · Stock: {p.quantity}
+                        {p.name} · ${formatPrice(p.unit_price)} · Stock: {p.quantity}
                       </option>
                     ))}
                   </select>
@@ -604,8 +605,8 @@ const EditOrder = () => {
                                 disabled={saving}
                               />
                             </td>
-                            <td className="px-3 py-2 text-right text-gray-600">${part.unit_price.toLocaleString('es-AR')}</td>
-                            <td className="px-3 py-2 text-right font-semibold text-gray-800">${part.subtotal.toLocaleString('es-AR')}</td>
+                            <td className="px-3 py-2 text-right text-gray-600">${formatPrice(part.unit_price)}</td>
+                            <td className="px-3 py-2 text-right font-semibold text-gray-800">${formatPrice(part.subtotal)}</td>
                             <td className="px-2 py-2">
                               <button type="button" onClick={() => handleRemovePart(part.id)} className="text-red-400 hover:text-red-600">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
@@ -617,7 +618,7 @@ const EditOrder = () => {
                       <tfoot className="bg-gray-50 border-t border-gray-200">
                         <tr>
                           <td colSpan={3} className="px-3 py-2 text-sm font-semibold text-gray-700">Total repuestos</td>
-                          <td className="px-3 py-2 text-right font-bold text-gray-900">${parseFloat(formData.parts_cost).toLocaleString('es-AR')}</td>
+                          <td className="px-3 py-2 text-right font-bold text-gray-900">${formatPrice(formData.parts_cost)}</td>
                           <td></td>
                         </tr>
                       </tfoot>
@@ -636,15 +637,15 @@ const EditOrder = () => {
                   <p className="text-sm font-semibold text-green-800 mb-1">Desglose de ganancia:</p>
                   <div className="flex justify-between text-sm text-green-700">
                     <span>Precio cobrado:</span>
-                    <span className="font-medium">${parseFloat(formData.final_cost || formData.estimated_cost || 0).toLocaleString('es-AR')}</span>
+                    <span className="font-medium">${formatPrice(formData.final_cost || formData.estimated_cost || 0)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-green-700">
                     <span>Costo repuestos:</span>
-                    <span className="font-medium">- ${parseFloat(formData.parts_cost || 0).toLocaleString('es-AR')}</span>
+                    <span className="font-medium">- ${formatPrice(formData.parts_cost || 0)}</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold text-green-800 border-t border-green-300 pt-1 mt-1">
                     <span>Ganancia mano de obra:</span>
-                    <span>${(parseFloat(formData.final_cost || formData.estimated_cost || 0) - parseFloat(formData.parts_cost || 0)).toLocaleString('es-AR')}</span>
+                    <span>${formatPrice(parseFloat(formData.final_cost || formData.estimated_cost || 0) - parseFloat(formData.parts_cost || 0))}</span>
                   </div>
                 </div>
               )}

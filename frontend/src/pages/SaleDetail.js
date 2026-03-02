@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import SaleTicket from '../components/SaleTicket';
 import { salesService } from '../services/api';
+import { formatPrice } from '../utils/format';
 
 /**
  * Página de detalle de venta
@@ -76,7 +77,7 @@ const SaleDetail = () => {
     }
     
     if (amount > sale.balance) {
-      alert(`El monto no puede ser mayor al saldo pendiente ($${sale.balance.toLocaleString('es-AR')})`);
+      alert(`El monto no puede ser mayor al saldo pendiente ($${formatPrice(sale.balance)})`);
       return;
     }
     
@@ -200,10 +201,10 @@ const SaleDetail = () => {
                       </td>
                       <td className="p-3 text-right text-gray-900">{item.quantity}</td>
                       <td className="p-3 text-right text-gray-900">
-                        ${item.unit_price.toLocaleString('es-AR')}
+                        ${formatPrice(item.unit_price)}
                       </td>
                       <td className="p-3 text-right font-medium text-gray-900">
-                        ${item.subtotal.toLocaleString('es-AR')}
+                        ${formatPrice(item.subtotal)}
                       </td>
                     </tr>
                   ))}
@@ -217,18 +218,18 @@ const SaleDetail = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center text-gray-700 text-lg">
                 <span className="font-medium">Subtotal:</span>
-                <span className="font-semibold text-gray-900">${sale.subtotal.toLocaleString('es-AR')}</span>
+                <span className="font-semibold text-gray-900">${formatPrice(sale.subtotal)}</span>
               </div>
               {sale.discount > 0 && (
                 <div className="flex justify-between items-center text-red-600 text-lg">
                   <span className="font-medium">Descuento:</span>
-                  <span className="font-semibold">-${sale.discount.toLocaleString('es-AR')}</span>
+                  <span className="font-semibold">-${formatPrice(sale.discount)}</span>
                 </div>
               )}
               <div className="pt-4 border-t-2 border-gray-300">
                 <div className="flex justify-between items-center">
                   <span className="text-2xl font-bold text-gray-900">Total:</span>
-                  <span className="text-3xl font-bold text-primary">${sale.total.toLocaleString('es-AR')}</span>
+                  <span className="text-3xl font-bold text-primary">${formatPrice(sale.total)}</span>
                 </div>
               </div>
               <div className="pt-4 mt-2 border-t border-gray-200 bg-white rounded-lg p-4 shadow-sm">
@@ -260,13 +261,13 @@ const SaleDetail = () => {
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-700">Monto Pagado:</span>
-                      <span className="font-semibold text-green-700">${(sale.paid_amount || 0).toLocaleString('es-AR')}</span>
+                      <span className="font-semibold text-green-700">${formatPrice(sale.paid_amount || 0)}</span>
                     </div>
                     {sale.balance > 0 && (
                       <>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-700 font-medium">Saldo Pendiente:</span>
-                          <span className="font-bold text-red-600 text-lg">${sale.balance.toLocaleString('es-AR')}</span>
+                          <span className="font-bold text-red-600 text-lg">${formatPrice(sale.balance)}</span>
                         </div>
                         
                         {/* Botón para registrar pago */}
@@ -353,7 +354,7 @@ const SaleDetail = () => {
                     Venta: <span className="font-semibold text-gray-900">{sale.sale_number}</span>
                   </p>
                   <p className="text-sm text-gray-600 mb-4">
-                    Saldo pendiente: <span className="font-bold text-red-600 text-lg">${sale.balance.toLocaleString('es-AR')}</span>
+                    Saldo pendiente: <span className="font-bold text-red-600 text-lg">${formatPrice(sale.balance)}</span>
                   </p>
                   
                   <label className="block text-sm font-medium text-gray-700 mb-2">

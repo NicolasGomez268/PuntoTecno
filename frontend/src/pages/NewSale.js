@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { customersService, inventoryService, salesService } from '../services/api';
+import { formatPrice } from '../utils/format';
 
 /**
  * Página de punto de venta - Nueva venta
@@ -287,7 +288,7 @@ const NewSale = () => {
                             </div>
                             <div className="text-right">
                               <p className="font-medium text-gray-900">
-                                ${product.sale_price.toLocaleString('es-AR')}
+                                ${formatPrice(product.sale_price)}
                               </p>
                               <p className="text-sm text-gray-500">
                                 Stock: {product.quantity}
@@ -322,7 +323,7 @@ const NewSale = () => {
                           <p className="font-medium text-gray-900">{item.product_name}</p>
                           <p className="text-sm text-gray-500">SKU: {item.product_sku}</p>
                           <p className="text-sm text-gray-500">
-                            ${item.unit_price.toLocaleString('es-AR')} c/u
+                            ${formatPrice(item.unit_price)} c/u
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -351,7 +352,7 @@ const NewSale = () => {
                         </div>
                         <div className="text-right min-w-[100px]">
                           <p className="font-semibold text-gray-900">
-                            ${(item.quantity * item.unit_price).toLocaleString('es-AR')}
+                            ${formatPrice(item.quantity * item.unit_price)}
                           </p>
                         </div>
                         <button
@@ -419,7 +420,7 @@ const NewSale = () => {
                 <div className="space-y-3">
                   <div className="flex justify-between text-gray-700">
                     <span>Subtotal:</span>
-                    <span className="font-medium">${calculateSubtotal().toLocaleString('es-AR')}</span>
+                    <span className="font-medium">${formatPrice(calculateSubtotal())}</span>
                   </div>
                   <div>
                     <label className="block text-sm text-gray-700 mb-1">Descuento:</label>
@@ -439,7 +440,7 @@ const NewSale = () => {
                   <div className="pt-3 border-t border-gray-200">
                     <div className="flex justify-between text-lg font-bold text-gray-900">
                       <span>Total:</span>
-                      <span className="text-primary">${calculateTotal().toLocaleString('es-AR')}</span>
+                      <span className="text-primary">${formatPrice(calculateTotal())}</span>
                     </div>
                   </div>
                 </div>
@@ -482,7 +483,7 @@ const NewSale = () => {
                       />
                     </div>
                     <p className="text-sm text-gray-500 mt-2">
-                      Saldo pendiente: ${(calculateTotal() - (parseFloat(formData.paid_amount) || 0)).toLocaleString('es-AR')}
+                      Saldo pendiente: ${formatPrice(calculateTotal() - (parseFloat(formData.paid_amount) || 0))}
                     </p>
                   </div>
                 )}
@@ -510,7 +511,7 @@ const NewSale = () => {
                   disabled={loading || cart.length === 0}
                   className="w-full btn-primary py-4 text-lg disabled:opacity-50"
                 >
-                  {loading ? 'Procesando...' : `Cobrar $${calculateTotal().toLocaleString('es-AR')}`}
+                  {loading ? 'Procesando...' : `Cobrar $${formatPrice(calculateTotal())}`}
                 </button>
                 <button
                   type="button"
