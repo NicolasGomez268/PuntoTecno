@@ -392,14 +392,14 @@ class RepairOrderViewSet(viewsets.ModelViewSet):
         Registra un pago adicional sobre una orden con saldo pendiente
         """
         order = self.get_object()
-        
+
         # Validar que tenga saldo pendiente
         if order.balance <= 0:
             return Response(
                 {'error': 'Esta orden no tiene saldo pendiente'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Obtener monto del pago
         amount = request.data.get('amount')
         if not amount:
@@ -407,7 +407,7 @@ class RepairOrderViewSet(viewsets.ModelViewSet):
                 {'error': 'Debe especificar el monto del pago'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         try:
             amount = Decimal(str(amount))
         except (ValueError, TypeError):
@@ -415,31 +415,40 @@ class RepairOrderViewSet(viewsets.ModelViewSet):
                 {'error': 'El monto debe ser un número válido'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Validar que el monto no sea mayor al saldo
         if amount > Decimal(str(order.balance)):
             return Response(
                 {'error': f'El monto no puede ser mayor al saldo pendiente (${order.balance})'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
-        # Actualizar la orden
-        order.paid_amount = Decimal(str(order.paid_amount)) + amount
-        
+
+        # Calcular nuevos valores
+        new_paid_amount = Decimal(str(order.paid_amount)) + amount
+
         # Usar el costo estimado o final según corresponda
         total_cost = order.final_cost if order.final_cost else order.estimated_cost
-        if total_cost:
-            order.balance = Decimal(str(total_cost)) - order.paid_amount
-            
-            # Actualizar estado
-            if order.balance <= 0:
-                order.payment_status = 'paid'
-                order.balance = 0
-            elif order.paid_amount > 0:
-                order.payment_status = 'partial'
-        
-        order.save()
-        
+        new_balance = Decimal(str(total_cost)) - new_paid_amount if total_cost else Decimal('0')
+
+        # Determinar nuevo estado
+        if new_balance <= 0:
+            new_payment_status = 'paid'
+            new_balance = Decimal('0')
+        elif new_paid_amount > 0:
+            new_payment_status = 'partial'
+        else:
+            new_payment_status = 'pending'
+
+        # Usar update para evitar que el método save() sobreescriba los valores
+        RepairOrder.objects.filter(pk=order.pk).update(
+            paid_amount=new_paid_amount,
+            balance=new_balance,
+            payment_status=new_payment_status
+        )
+
+        # Recargar la orden desde la BD
+        order.refresh_from_db()
+
         # Retornar la orden actualizada
         serializer = self.get_serializer(order)
         return Response(serializer.data)

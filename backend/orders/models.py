@@ -291,26 +291,59 @@ class RepairOrder(models.Model):
             else:
                 new_number = 1
             self.order_number = f"ORD-{new_number:06d}"
-        
-        # Calcular balance si es cuenta corriente
-        if self.payment_method == 'account' and self.estimated_cost:
-            self.balance = self.estimated_cost - self.paid_amount
-            
-            # Actualizar estado de pago
-            if self.balance <= 0:
-                self.payment_status = 'paid'
-                self.balance = 0
-            elif self.paid_amount > 0:
-                self.payment_status = 'partial'
+
+        # Solo recalcular balance y estado de pago si:
+        # 1. Es una orden nueva (no tiene pk)
+        # 2. O si no hay pagos registrados manualmente (paid_amount == 0 o == deposit_amount)
+        should_recalculate = (
+            not self.pk or  # Nueva orden
+            (self.paid_amount == 0) or  # Sin pagos
+            (self.payment_method == 'not_paid' and self.paid_amount <= self.deposit_amount)  # Solo tiene seña
+        )
+
+        if should_recalculate:
+            # Obtener el costo total (preferir final_cost, sino estimated_cost)
+            total_cost = self.final_cost if self.final_cost else self.estimated_cost
+
+            # Calcular balance y estado de pago según el método
+            if self.payment_method == 'account':
+                # Cuenta corriente - calcular saldo pendiente
+                if total_cost:
+                    self.balance = total_cost - self.paid_amount
+
+                    # Actualizar estado de pago
+                    if self.balance <= 0:
+                        self.payment_status = 'paid'
+                        self.balance = 0
+                    elif self.paid_amount > 0:
+                        self.payment_status = 'partial'
+                    else:
+                        self.payment_status = 'pending'
+            elif self.payment_method == 'not_paid':
+                # Sin abonar - calcular balance basado en adelanto/seña
+                if self.deposit_amount > 0:
+                    self.paid_amount = self.deposit_amount
+                    if total_cost:
+                        self.balance = total_cost - self.paid_amount
+
+                        # Actualizar estado
+                        if self.balance <= 0:
+                            self.payment_status = 'paid'
+                            self.balance = 0
+                        else:
+                            self.payment_status = 'partial'
+                else:
+                    # Sin adelanto - todo pendiente
+                    self.paid_amount = 0
+                    self.balance = total_cost if total_cost else 0
+                    self.payment_status = 'pending'
             else:
-                self.payment_status = 'pending'
-        else:
-            # Para otros métodos, si hay adelanto, considerar pagado ese monto
-            if self.deposit_amount > 0:
-                self.paid_amount = self.deposit_amount
-                if self.estimated_cost:
-                    self.balance = self.estimated_cost - self.paid_amount
-        
+                # Efectivo, Transferencia - considerado como pagado
+                if total_cost:
+                    self.paid_amount = total_cost
+                self.balance = 0
+                self.payment_status = 'paid'
+
         super().save(*args, **kwargs)
     
     def remaining_balance(self):
