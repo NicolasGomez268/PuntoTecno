@@ -1,8 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Pagination from '../components/Pagination';
 import { ordersService } from '../services/api';
+
+const STATUS_TABS = ['received', 'in_service', 'ready', 'delivered'];
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
@@ -12,6 +14,13 @@ const Orders = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [statusCounts, setStatusCounts] = useState({
+    all: 0,
+    received: 0,
+    in_service: 0,
+    ready: 0,
+    delivered: 0,
+  });
   const navigate = useNavigate();
 
   const STATUS_LABELS = {
@@ -36,46 +45,94 @@ const Orders = () => {
     cancelled: 'bg-gray-100 text-gray-800'
   };
 
-  useEffect(() => {
-    loadOrders();
-  }, [currentPage]);
-
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await ordersService.getAll({ page: currentPage, page_size: 50 });
+      const params = {
+        page: currentPage,
+        page_size: 50,
+      };
+
+      if (searchTerm.trim()) {
+        params.search = searchTerm.trim();
+      }
+
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      const data = await ordersService.getAll(params);
       const ordersArray = data.results || data;
       setOrders(Array.isArray(ordersArray) ? ordersArray : []);
       setError('');
       
       // Calcular total de páginas
-      if (data.count) {
-        setTotalPages(Math.ceil(data.count / 50));
+      if (typeof data.count === 'number') {
+        setTotalPages(Math.max(1, Math.ceil(data.count / 50)));
+      } else {
+        setTotalPages(1);
       }
     } catch (err) {
       setError('Error al cargar las órdenes');
       console.error('Error:', err);
       setOrders([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, searchTerm, statusFilter]);
 
-  const filteredOrders = Array.isArray(orders) ? orders.filter(order => {
-    const matchesSearch = 
-      order.order_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.device_model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.device_brand?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  }) : [];
+  const loadStatusCounts = useCallback(async () => {
+    try {
+      const baseParams = {
+        page: 1,
+        page_size: 1,
+      };
+
+      if (searchTerm.trim()) {
+        baseParams.search = searchTerm.trim();
+      }
+
+      const allPromise = ordersService.getAll(baseParams);
+      const statusPromises = STATUS_TABS.map((status) =>
+        ordersService.getAll({ ...baseParams, status })
+      );
+
+      const [allData, ...statusData] = await Promise.all([allPromise, ...statusPromises]);
+
+      const nextCounts = {
+        all: typeof allData.count === 'number' ? allData.count : 0,
+      };
+
+      STATUS_TABS.forEach((status, index) => {
+        nextCounts[status] = typeof statusData[index]?.count === 'number' ? statusData[index].count : 0;
+      });
+
+      setStatusCounts(nextCounts);
+    } catch (err) {
+      console.error('Error al cargar contadores de estado:', err);
+    }
+  }, [searchTerm]);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      loadOrders();
+    }, 250);
+
+    return () => clearTimeout(debounce);
+  }, [loadOrders]);
+
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      loadStatusCounts();
+    }, 250);
+
+    return () => clearTimeout(debounce);
+  }, [loadStatusCounts]);
 
   const getStatusCount = (status) => {
-    if (status === 'all') return orders.length;
-    return orders.filter(order => order.status === status).length;
+    if (status === 'all') return statusCounts.all;
+    return statusCounts[status] || 0;
   };
 
   return (
@@ -97,7 +154,10 @@ const Orders = () => {
                 type="text"
                 placeholder="Buscar por N° orden, cliente, equipo..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -117,7 +177,10 @@ const Orders = () => {
           {/* Filtros de estado */}
           <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setStatusFilter('all')}
+              onClick={() => {
+                setStatusFilter('all');
+                setCurrentPage(1);
+              }}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                 statusFilter === 'all' 
                   ? 'bg-primary text-white' 
@@ -127,7 +190,10 @@ const Orders = () => {
               Todas ({getStatusCount('all')})
             </button>
             <button
-              onClick={() => setStatusFilter('received')}
+              onClick={() => {
+                setStatusFilter('received');
+                setCurrentPage(1);
+              }}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                 statusFilter === 'received' 
                   ? 'bg-blue-500 text-white' 
@@ -137,7 +203,10 @@ const Orders = () => {
               Recibido ({getStatusCount('received')})
             </button>
             <button
-              onClick={() => setStatusFilter('in_service')}
+              onClick={() => {
+                setStatusFilter('in_service');
+                setCurrentPage(1);
+              }}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                 statusFilter === 'in_service' 
                   ? 'bg-yellow-500 text-white' 
@@ -147,7 +216,10 @@ const Orders = () => {
               En Servicio ({getStatusCount('in_service')})
             </button>
             <button
-              onClick={() => setStatusFilter('ready')}
+              onClick={() => {
+                setStatusFilter('ready');
+                setCurrentPage(1);
+              }}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                 statusFilter === 'ready' 
                   ? 'bg-purple-500 text-white' 
@@ -157,7 +229,10 @@ const Orders = () => {
               Listo ({getStatusCount('ready')})
             </button>
             <button
-              onClick={() => setStatusFilter('delivered')}
+              onClick={() => {
+                setStatusFilter('delivered');
+                setCurrentPage(1);
+              }}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${
                 statusFilter === 'delivered' 
                   ? 'bg-gray-500 text-white' 
@@ -179,7 +254,7 @@ const Orders = () => {
             <div className="p-6 text-center text-red-600">
               {error}
             </div>
-          ) : filteredOrders.length === 0 ? (
+          ) : orders.length === 0 ? (
             <div className="p-12 text-center">
               <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -220,7 +295,7 @@ const Orders = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredOrders.map((order) => (
+                  {orders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => navigate(`/orders/${order.id}`)}>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-semibold text-gray-900">
@@ -270,7 +345,7 @@ const Orders = () => {
         </div>
 
         {/* Footer con paginación */}
-        {!loading && !error && filteredOrders.length > 0 && (
+        {!loading && !error && orders.length > 0 && (
           <div className="mt-4">
             <Pagination
               currentPage={currentPage}
