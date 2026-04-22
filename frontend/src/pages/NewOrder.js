@@ -9,7 +9,7 @@ const NewOrder = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [customers, setCustomers] = useState([]);
-  const [loadingCustomers, setLoadingCustomers] = useState(true);
+  const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [products, setProducts] = useState([]);
   const [selectedParts, setSelectedParts] = useState([]);
   const [partSelector, setPartSelector] = useState({ productId: '', quantity: 1 });
@@ -19,6 +19,7 @@ const NewOrder = () => {
   const partSearchRef = useRef(null);
   const [customerSearch, setCustomerSearch] = useState('');
   const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+  const customerSearchRequestRef = useRef(0);
   
   const [formData, setFormData] = useState({
     customer: '',
@@ -39,9 +40,48 @@ const NewOrder = () => {
   });
 
   useEffect(() => {
-    loadCustomers();
     loadProducts();
   }, []);
+
+  useEffect(() => {
+    const query = customerSearch.trim();
+
+    if (query.length < 2) {
+      setCustomers([]);
+      setCustomerDropdownOpen(false);
+      setLoadingCustomers(false);
+      return;
+    }
+
+    const requestId = ++customerSearchRequestRef.current;
+    const debounce = setTimeout(async () => {
+      try {
+        setLoadingCustomers(true);
+        setCustomerDropdownOpen(true);
+
+        const data = await customersService.getAll({
+          search: query,
+          page: 1,
+          page_size: 20,
+        });
+
+        if (requestId !== customerSearchRequestRef.current) return;
+
+        const customersArray = data.results || data;
+        setCustomers(Array.isArray(customersArray) ? customersArray : []);
+      } catch (err) {
+        if (requestId !== customerSearchRequestRef.current) return;
+        console.error('Error al buscar clientes:', err);
+        setCustomers([]);
+      } finally {
+        if (requestId === customerSearchRequestRef.current) {
+          setLoadingCustomers(false);
+        }
+      }
+    }, 250);
+
+    return () => clearTimeout(debounce);
+  }, [customerSearch]);
 
   // Recalcular parts_cost cuando el usuario agrega/quita repuestos
   useEffect(() => {
@@ -49,19 +89,6 @@ const NewOrder = () => {
     const total = selectedParts.reduce((sum, p) => sum + p.subtotal, 0);
     setFormData(prev => ({ ...prev, parts_cost: total.toFixed(2) }));
   }, [selectedParts, partsModified]);
-
-  const loadCustomers = async () => {
-    try {
-      setLoadingCustomers(true);
-      const data = await customersService.getAll();
-      const customersArray = data.results || data;
-      setCustomers(Array.isArray(customersArray) ? customersArray : []);
-    } catch (err) {
-      console.error('Error al cargar clientes:', err);
-    } finally {
-      setLoadingCustomers(false);
-    }
-  };
 
   const loadProducts = async () => {
     try {
@@ -199,75 +226,70 @@ const NewOrder = () => {
                 <label htmlFor="customer" className="block text-sm font-medium text-gray-700 mb-2">
                   Cliente <span className="text-red-500">*</span>
                 </label>
-                {loadingCustomers ? (
-                  <div className="text-sm text-gray-500">Cargando clientes...</div>
-                ) : (
-                  <div className="flex gap-2">
-                    <div className="flex-1 relative">
-                      <input
-                        type="text"
-                        value={customerSearch}
-                        onChange={e => {
-                          const val = e.target.value;
-                          setCustomerSearch(val);
-                          setCustomerDropdownOpen(val.length >= 2);
-                          if (!val) {
-                            setCustomerSearch('');
-                            setFormData(prev => ({ ...prev, customer: '' }));
-                          }
-                        }}
-                        onFocus={() => { if (customerSearch.length >= 2) setCustomerDropdownOpen(true); }}
-                        onBlur={() => setTimeout(() => setCustomerDropdownOpen(false), 150)}
-                        placeholder="Buscar por nombre o DNI..."
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        disabled={loading}
-                        autoComplete="off"
-                      />
-                      {/* Campo oculto para validación required */}
-                      <input type="hidden" name="customer" value={formData.customer} required />
-                      {customerDropdownOpen && (() => {
-                        const q = customerSearch.toLowerCase();
-                        const filtered = customers.filter(c =>
-                          `${c.first_name} ${c.last_name}`.toLowerCase().includes(q) ||
-                          c.dni.includes(q)
-                        );
-                        return filtered.length > 0 ? (
-                          <ul className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto mt-1">
-                            {filtered.map(c => (
-                              <li
-                                key={c.id}
-                                onMouseDown={() => {
-                                  setFormData(prev => ({ ...prev, customer: String(c.id) }));
-                                  setCustomerSearch(`${c.first_name} ${c.last_name} - ${c.dni}`);
-                                  setCustomerDropdownOpen(false);
-                                }}
-                                className="px-4 py-2 text-sm cursor-pointer hover:bg-primary hover:text-white transition-colors"
-                              >
-                                <span className="font-medium">{c.first_name} {c.last_name}</span>
-                                <span className="ml-2 text-xs opacity-75">DNI: {c.dni}</span>
-                                {c.phone && <span className="ml-2 text-xs opacity-75">· {c.phone}</span>}
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <div className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 px-4 py-2 text-sm text-gray-500">
-                            Sin resultados
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => window.open('/customers/new', '_blank')}
-                      className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-                      title="Crear nuevo cliente"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <input
+                      type="text"
+                      value={customerSearch}
+                      onChange={e => {
+                        const val = e.target.value;
+                        setCustomerSearch(val);
+                        setFormData(prev => ({ ...prev, customer: '' }));
+                        if (!val.trim()) {
+                          setCustomerDropdownOpen(false);
+                        }
+                      }}
+                      onFocus={() => { if (customerSearch.trim().length >= 2) setCustomerDropdownOpen(true); }}
+                      onBlur={() => setTimeout(() => setCustomerDropdownOpen(false), 150)}
+                      placeholder="Buscar por nombre o DNI..."
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                      disabled={loading}
+                      autoComplete="off"
+                    />
+                    {/* Campo oculto para validación required */}
+                    <input type="hidden" name="customer" value={formData.customer} required />
+
+                    {customerDropdownOpen && (
+                      loadingCustomers ? (
+                        <div className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 px-4 py-2 text-sm text-gray-500">
+                          Buscando clientes...
+                        </div>
+                      ) : customers.length > 0 ? (
+                        <ul className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto mt-1">
+                          {customers.map(c => (
+                            <li
+                              key={c.id}
+                              onMouseDown={() => {
+                                setFormData(prev => ({ ...prev, customer: String(c.id) }));
+                                setCustomerSearch(`${c.first_name} ${c.last_name} - ${c.dni}`);
+                                setCustomerDropdownOpen(false);
+                              }}
+                              className="px-4 py-2 text-sm cursor-pointer hover:bg-primary hover:text-white transition-colors"
+                            >
+                              <span className="font-medium">{c.first_name} {c.last_name}</span>
+                              <span className="ml-2 text-xs opacity-75">DNI: {c.dni}</span>
+                              {c.phone && <span className="ml-2 text-xs opacity-75">· {c.phone}</span>}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 px-4 py-2 text-sm text-gray-500">
+                          Sin resultados
+                        </div>
+                      )
+                    )}
                   </div>
-                )}
+                  <button
+                    type="button"
+                    onClick={() => window.open('/customers/new', '_blank')}
+                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                    title="Crear nuevo cliente"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

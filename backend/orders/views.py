@@ -32,6 +32,8 @@ class CustomerViewSet(viewsets.ModelViewSet):
         
         if search:
             queryset = queryset.filter(
+                Q(dni__icontains=search) |
+                Q(customer_number__icontains=search) |
                 Q(first_name__icontains=search) |
                 Q(last_name__icontains=search) |
                 Q(phone__icontains=search) |
