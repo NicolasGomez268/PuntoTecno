@@ -25,6 +25,7 @@ class SaleSerializer(serializers.ModelSerializer):
     items = SaleItemSerializer(many=True)
     customer_display = serializers.CharField(source='get_customer_display', read_only=True)
     employee_name = serializers.CharField(source='employee.get_full_name', read_only=True)
+    cancelled_by_name = serializers.CharField(source='cancelled_by.get_full_name', read_only=True)
     
     class Meta:
         model = Sale
@@ -33,9 +34,13 @@ class SaleSerializer(serializers.ModelSerializer):
             'customer_display', 'subtotal', 'discount', 'total',
             'payment_method', 'payment_status', 'paid_amount', 'balance',
             'employee', 'employee_name', 'notes',
+            'is_cancelled', 'cancelled_at', 'cancelled_by', 'cancelled_by_name', 'cancellation_reason',
             'items', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['sale_number', 'date', 'subtotal', 'total', 'employee', 'balance', 'payment_status']
+        read_only_fields = [
+            'sale_number', 'date', 'subtotal', 'total', 'employee', 'balance', 'payment_status',
+            'is_cancelled', 'cancelled_at', 'cancelled_by', 'cancelled_by_name', 'cancellation_reason'
+        ]
     
     def create(self, validated_data):
         """Crea la venta con sus items y actualiza el inventario"""
@@ -102,5 +107,5 @@ class SaleListSerializer(serializers.ModelSerializer):
         model = Sale
         fields = [
             'id', 'sale_number', 'date', 'customer_display',
-            'total', 'payment_method', 'employee_name', 'items_count'
+            'total', 'payment_method', 'employee_name', 'items_count', 'is_cancelled'
         ]

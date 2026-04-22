@@ -271,6 +271,11 @@ const Sales = () => {
                       </td>
                       <td className="p-4">
                         <div>
+                          {sale.is_cancelled && (
+                            <span className="mr-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
+                              Anulada
+                            </span>
+                          )}
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             sale.payment_method === 'cash' ? 'bg-green-100 text-green-800' :
                             sale.payment_method === 'card' ? 'bg-blue-100 text-blue-800' :

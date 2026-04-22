@@ -6,6 +6,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Sum, Count, Q
+from django.db import transaction
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal
@@ -27,7 +28,7 @@ class SaleViewSet(viewsets.ModelViewSet):
         return SaleSerializer
     
     def get_queryset(self):
-        queryset = Sale.objects.select_related('customer', 'employee').prefetch_related('items__product')
+        queryset = Sale.objects.select_related('customer', 'employee', 'cancelled_by').prefetch_related('items__product')
         
         # Filtros
         search = self.request.query_params.get('search', None)
@@ -61,16 +62,17 @@ class SaleViewSet(viewsets.ModelViewSet):
         """
         today = timezone.now().date()
         month_start = today.replace(day=1)
+        active_sales = Sale.objects.filter(is_cancelled=False)
         
         # Ventas del día
-        today_sales = Sale.objects.filter(date__date=today)
+        today_sales = active_sales.filter(date__date=today)
         sales_today_count = today_sales.count()
         sales_today_total = today_sales.aggregate(
             total=Sum('total')
         )['total'] or 0
         
         # Ventas del mes
-        month_sales = Sale.objects.filter(date__gte=month_start)
+        month_sales = active_sales.filter(date__gte=month_start)
         sales_month_count = month_sales.count()
         sales_month_total = month_sales.aggregate(
             total=Sum('total')
@@ -78,6 +80,7 @@ class SaleViewSet(viewsets.ModelViewSet):
         
         # Productos más vendidos del mes
         top_products = SaleItem.objects.filter(
+            sale__is_cancelled=False,
             sale__date__gte=month_start
         ).values(
             'product__name', 'product__sku'
@@ -111,6 +114,12 @@ class SaleViewSet(viewsets.ModelViewSet):
         Registra un pago adicional sobre una venta fiada
         """
         sale = self.get_object()
+
+        if sale.is_cancelled:
+            return Response(
+                {'error': 'No se pueden registrar pagos en una venta anulada'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         # Validar que sea cuenta corriente
         if sale.payment_method != 'account':
@@ -165,6 +174,29 @@ class SaleViewSet(viewsets.ModelViewSet):
         # Retornar la venta actualizada
         serializer = self.get_serializer(sale)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """
+        Anula una venta y reintegra automáticamente el stock de sus productos.
+        POST /api/sales/sales/{id}/cancel/
+        Body opcional: { "reason": "Motivo" }
+        """
+        sale = self.get_object()
+
+        if sale.is_cancelled:
+            return Response(
+                {'error': 'La venta ya se encuentra anulada'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        reason = request.data.get('reason', '')
+
+        with transaction.atomic():
+            sale.cancel_sale(cancelled_by=request.user, reason=reason)
+
+        serializer = self.get_serializer(sale)
+        return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def caja(self, request):
@@ -202,6 +234,7 @@ class SaleViewSet(viewsets.ModelViewSet):
 
         # Ventas del período
         period_sales = Sale.objects.filter(
+            is_cancelled=False,
             date__date__gte=date_from,
             date__date__lte=date_to
         ).prefetch_related('items__product').select_related('customer')
@@ -222,6 +255,7 @@ class SaleViewSet(viewsets.ModelViewSet):
 
         # Saldo pendiente total en ventas (cuenta corriente)
         pending_sales_qs = Sale.objects.filter(
+            is_cancelled=False,
             balance__gt=0
         ).prefetch_related('items__product').select_related('customer').order_by('-date')
 
@@ -285,7 +319,7 @@ class SaleViewSet(viewsets.ModelViewSet):
         """
         date = request.query_params.get('date', timezone.now().date())
         
-        sales = Sale.objects.filter(date__date=date)
+        sales = Sale.objects.filter(date__date=date, is_cancelled=False)
         
         # Total por método de pago
         by_payment = sales.values('payment_method').annotate(

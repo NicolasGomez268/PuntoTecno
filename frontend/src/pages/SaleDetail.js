@@ -17,6 +17,9 @@ const SaleDetail = () => {
   const [paymentAmount, setPaymentAmount] = useState('');
   const [processingPayment, setProcessingPayment] = useState(false);
   const [showTicket, setShowTicket] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [processingCancel, setProcessingCancel] = useState(false);
 
   useEffect(() => {
     loadSale();
@@ -107,6 +110,38 @@ const SaleDetail = () => {
     }
   };
 
+  const handleCancelSale = async (e) => {
+    e.preventDefault();
+
+    if (sale.is_cancelled) {
+      return;
+    }
+
+    try {
+      setProcessingCancel(true);
+      const updatedSale = await salesService.cancelSale(id, cancelReason.trim());
+      setSale(updatedSale);
+      setShowCancelModal(false);
+      setCancelReason('');
+
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50';
+      toast.innerHTML = `
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <span>Venta anulada y stock reintegrado</span>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    } catch (error) {
+      console.error('Error al anular venta:', error);
+      alert(error.response?.data?.error || 'Error al anular la venta');
+    } finally {
+      setProcessingCancel(false);
+    }
+  };
+
   if (loading) {
     return (
       <>
@@ -149,17 +184,42 @@ const SaleDetail = () => {
                 })}
               </p>
             </div>
-            <button
-              onClick={handlePrint}
-              className="btn-secondary print:hidden"
-            >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-              </svg>
-              Imprimir Ticket
-            </button>
+            <div className="flex items-center gap-2 print:hidden">
+              {!sale.is_cancelled && (
+                <button
+                  onClick={() => setShowCancelModal(true)}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                  Anular Venta
+                </button>
+              )}
+              <button
+                onClick={handlePrint}
+                className="btn-secondary"
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                Imprimir Ticket
+              </button>
+            </div>
           </div>
         </div>
+
+        {sale.is_cancelled && (
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+            <p className="text-red-800 font-semibold">Venta anulada</p>
+            <p className="text-red-700 text-sm mt-1">
+              Fecha: {sale.cancelled_at ? new Date(sale.cancelled_at).toLocaleString('es-AR') : '—'}
+            </p>
+            {sale.cancelled_by_name && (
+              <p className="text-red-700 text-sm">Anulada por: {sale.cancelled_by_name}</p>
+            )}
+            {sale.cancellation_reason && (
+              <p className="text-red-700 text-sm">Motivo: {sale.cancellation_reason}</p>
+            )}
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* Información del cliente */}
@@ -247,7 +307,7 @@ const SaleDetail = () => {
                 </div>
                 
                 {/* Mostrar información de cuenta corriente */}
-                {sale.payment_method === 'account' && (
+                {sale.payment_method === 'account' && !sale.is_cancelled && (
                   <div className="mt-4 pt-3 border-t border-gray-200 space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-700">Estado:</span>
@@ -410,6 +470,60 @@ const SaleDetail = () => {
                     disabled={processingPayment}
                   >
                     {processingPayment ? 'Procesando...' : 'Confirmar Pago'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {showCancelModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 print:hidden">
+            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-xl font-bold text-gray-900">Anular Venta</h3>
+                <button
+                  onClick={() => setShowCancelModal(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-700 mb-3">
+                Esta acción reintegrará automáticamente el stock de todos los productos de la venta.
+              </p>
+
+              <form onSubmit={handleCancelSale}>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Motivo (opcional)
+                </label>
+                <textarea
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="Ej: Cliente devolvió el producto por incompatibilidad"
+                  disabled={processingCancel}
+                />
+
+                <div className="flex gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowCancelModal(false)}
+                    className="flex-1 btn-secondary"
+                    disabled={processingCancel}
+                  >
+                    Cerrar
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg"
+                    disabled={processingCancel}
+                  >
+                    {processingCancel ? 'Anulando...' : 'Confirmar Anulación'}
                   </button>
                 </div>
               </form>

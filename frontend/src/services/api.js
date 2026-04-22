@@ -280,6 +280,11 @@ export const salesService = {
     const response = await api.post('/sales/sales/', data);
     return response.data;
   },
+
+  cancelSale: async (id, reason = '') => {
+    const response = await api.post(`/sales/sales/${id}/cancel/`, { reason });
+    return response.data;
+  },
   
   addPayment: async (id, amount) => {
     const response = await api.post(`/sales/sales/${id}/add_payment/`, { amount });

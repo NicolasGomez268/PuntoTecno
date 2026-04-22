@@ -3,6 +3,7 @@ Modelos para el sistema de ventas
 """
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from inventory.models import Product
 from orders.models import Customer
 
@@ -125,6 +126,31 @@ class Sale(models.Model):
         auto_now=True,
         verbose_name='Actualizado el'
     )
+
+    is_cancelled = models.BooleanField(
+        default=False,
+        verbose_name='Venta anulada'
+    )
+
+    cancelled_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name='Fecha de anulación'
+    )
+
+    cancelled_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='cancelled_sales',
+        verbose_name='Anulada por'
+    )
+
+    cancellation_reason = models.TextField(
+        blank=True,
+        verbose_name='Motivo de anulación'
+    )
     
     class Meta:
         verbose_name = 'Venta'
@@ -164,6 +190,22 @@ class Sale(models.Model):
             self.payment_status = 'paid'
         
         self.save()
+
+    def cancel_sale(self, cancelled_by=None, reason=''):
+        """Anula la venta y reintegra stock de todos sus items."""
+        if self.is_cancelled:
+            return
+
+        for item in self.items.select_related('product').all():
+            product = item.product
+            product.quantity += item.quantity
+            product.save(update_fields=['quantity'])
+
+        self.is_cancelled = True
+        self.cancelled_at = timezone.now()
+        self.cancelled_by = cancelled_by
+        self.cancellation_reason = reason or ''
+        self.save(update_fields=['is_cancelled', 'cancelled_at', 'cancelled_by', 'cancellation_reason'])
 
 
 class SaleItem(models.Model):
