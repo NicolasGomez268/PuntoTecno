@@ -5,7 +5,8 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from django.db.models import Q, Count, Sum
+from django.db.models import Q, Count, Sum, Value
+from django.db.models.functions import Concat
 from django.utils import timezone
 from datetime import datetime, timedelta
 from decimal import Decimal
@@ -31,11 +32,14 @@ class CustomerViewSet(viewsets.ModelViewSet):
         search = self.request.query_params.get('search', None)
         
         if search:
-            queryset = queryset.filter(
+            queryset = queryset.annotate(
+                full_name=Concat('first_name', Value(' '), 'last_name')
+            ).filter(
                 Q(dni__icontains=search) |
                 Q(customer_number__icontains=search) |
                 Q(first_name__icontains=search) |
                 Q(last_name__icontains=search) |
+                Q(full_name__icontains=search) |
                 Q(phone__icontains=search) |
                 Q(email__icontains=search)
             )
