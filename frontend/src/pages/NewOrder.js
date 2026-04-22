@@ -44,6 +44,12 @@ const NewOrder = () => {
   }, []);
 
   useEffect(() => {
+    if (formData.customer) {
+      setCustomerDropdownOpen(false);
+      setLoadingCustomers(false);
+      return;
+    }
+
     const query = customerSearch.trim();
 
     if (query.length < 2) {
@@ -81,7 +87,7 @@ const NewOrder = () => {
     }, 250);
 
     return () => clearTimeout(debounce);
-  }, [customerSearch]);
+  }, [customerSearch, formData.customer]);
 
   // Recalcular parts_cost cuando el usuario agrega/quita repuestos
   useEffect(() => {
@@ -249,7 +255,7 @@ const NewOrder = () => {
                     {/* Campo oculto para validación required */}
                     <input type="hidden" name="customer" value={formData.customer} required />
 
-                    {customerDropdownOpen && (
+                    {customerDropdownOpen && !formData.customer && (
                       loadingCustomers ? (
                         <div className="absolute z-50 left-0 right-0 bg-white border border-gray-300 rounded-lg shadow-lg mt-1 px-4 py-2 text-sm text-gray-500">
                           Buscando clientes...
